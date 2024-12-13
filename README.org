@@ -1,0 +1,32 @@
+* 日本語版 chemfig マニュアル (Japanese version of chemfig manual)
+
+この文書は [[https://ctan.org/pkg/chemfig][chemfig]] のマニュアルを日本語訳したものです。
+原則として英語版を底本としていますが、フランス語版（の機械翻訳）を元にしている部分もあります。
+
+This is a Japanese translation of the manual for [[https://ctan.org/pkg/chemfig][chemfig]].
+Basically, the English version is used as the base text, but some
+parts are based on (the machine translation of) the French version.
+
+** バグレポート・改善案など
+
+明らかな誤訳はもちろん、誤字等の指摘（たとえ 1 文字でも!）、訳の改善の提案など全て大歓迎です。
+Pull requests もしくは Issues でお知らせ下さい。
+
+** 既知の問題
+
+- [ ] =\Verb= の前に xkanjiskip が入っていない
+- [ ] =\chemfig= の前後に xkanjiskip が入っていない
+
+** 訳者 / Translator
+
+Takashi P. KATO(H)
+
+** オリジナルについて / About Original
+
+[[https://ctan.org/pkg/chemfig][chemfig – Draw molecules with easy syntax]]
+
+Maintainer: Christian Tellechea
+
+** ライセンス / License
+
+same as the original, i. e. The LaTeX Project Public License 1.3c

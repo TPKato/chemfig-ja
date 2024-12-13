@@ -1,0 +1,3699 @@
+% !TeX TS-program = lualatex
+\documentclass[10pt]{ltjsarticle}
+\usepackage[a4paper,margin=2.5cm,footskip=10mm]{geometry}
+\usepackage[bottom]{footmisc}
+\usepackage{libertine,amsmath,array,longtable,xspace,fancybox,boites,textcomp,enumitem,chemfig,fancyhdr}
+\usetikzlibrary{decorations.pathmorphing}
+\usetikzlibrary{decorations.markings}
+\usetikzlibrary{matrix}
+\usepackage[protrusion=true,expansion,final,babel=true]{microtype}
+\fancypagestyle{plain}{%
+	\fancyhead[L]{}
+	\fancyhead[C]{}
+	\fancyhead[R]{}
+	\fancyfoot[l]{\tiny コンパイル日：\today}
+	\fancyfoot[c]{}
+	\fancyfoot[r]{\thepage}}
+\renewcommand\headrulewidth{0pt}
+
+\makeatletter
+\usepackage[scaled=0.8]{GoMono}
+\newcommand\make@car@active[1]{%
+	\catcode`#1\active
+	\begingroup
+		\lccode`\~`#1\relax
+		\lowercase{\endgroup\def~}%
+}
+
+\newif\if@exstar
+
+\newcommand\exemple{%
+	\begingroup
+	\parskip\smallskipamount
+	\@makeother\;\@makeother\!\@makeother\?\@makeother\:% neutralise frenchb
+	\@ifstar{\@exstartrue\exemple@}{\@exstarfalse\exemple@}}
+
+\newcommand\exemple@[2][65]{%
+	\medbreak\noindent
+	\begingroup
+		\let\do\@makeother\dospecials
+		\make@car@active\ { {}}%
+		\make@car@active\^^M{\par\leavevmode}%
+		\make@car@active\^^I{\space\space}%
+		\make@car@active\,{\leavevmode\kern\z@\string,}%
+		\make@car@active\-{\leavevmode\kern\z@\string-}%
+		\make@car@active\>{\leavevmode\kern\z@\string>}%
+		\make@car@active\<{\leavevmode\kern\z@\string<}%
+		\exemple@@{#1}{#2}%
+}
+
+\newcommand\exemple@@[3]{%
+	\def\@tempa##1#3{\exemple@@@{#1}{#2}{##1}}%
+	\@tempa
+}
+
+\newcommand\exemple@@@[3]{%
+	\xdef\the@code{#3}%
+	\endgroup
+	\if@exstar
+		\begingroup
+			\fboxrule0.4pt
+			\let\breakboxparindent\z@
+			\def\bkvz@bottom{\hrule\@height\fboxrule}%
+			\let\bkvz@before@breakbox\relax
+			\def\bkvz@set@linewidth{\advance\linewidth\dimexpr-2\fboxrule-2\fboxsep}%
+			\def\bkvz@left{\vrule\@width\fboxrule\hskip\fboxsep}%
+			\def\bkvz@right{\hskip\fboxsep\vrule\@width\fboxrule}%
+			\def\bkvz@top{\hbox to \hsize{%
+				\vrule\@width\fboxrule\@height\fboxrule
+				\leaders\bkvz@bottom\hfill
+				\sffamily
+				\fboxsep\z@
+				\colorbox{black}{\kern0.25em\color{white}\footnotesize\lower0.5ex\hbox{\strut#2}\kern0.25em}%
+				\leaders\bkvz@bottom\hfill
+				\vrule\@width\fboxrule\@height\fboxrule}}%
+			\breakbox
+				\kern.5ex\relax
+				\ltjsetparameter{autoxspacing=false, autospacing=false}
+				\ttfamily\footnotesize\the@code\par
+				\normalfont
+				\kern3pt
+				\hrule height0.1pt width\linewidth depth0.1pt
+				\vskip5pt
+				\rightskip0pt plus 1fill
+				\everypar{{\color{lightgray}\rlap{\vrule height0.1pt width\linewidth depth0.1pt}}\hskip0pt plus 1fill}%
+				\newlinechar`\^^M\everyeof{\noexpand}\scantokens{#3}\par
+			\endbreakbox
+		\endgroup
+	\else
+		\vskip0.5ex
+		\boxput*(0,1)
+			{\fboxsep\z@
+			\hbox{\sffamily\colorbox{black}{\leavevmode\kern0.25em{\color{white}\footnotesize\strut#2}\kern0.25em}}%
+			}%
+			{\fboxsep5pt
+			\fbox{%
+				$\vcenter{\hsize\dimexpr0.#1\linewidth-\fboxsep-\fboxrule\relax
+					\kern5pt\parskip0pt%
+                                        \ltjsetparameter{autoxspacing=false, autospacing=false}%
+                                        \ttfamily\footnotesize\the@code}%
+				\vcenter{\kern5pt\hsize\dimexpr\linewidth-0.#1\linewidth-\fboxsep-\fboxrule\relax
+					\everypar{{\color{lightgray}\rlap{\vrule height0.1pt width\dimexpr\linewidth-0.#1\linewidth-\fboxsep-\fboxrule depth0.1pt}}}%
+					\footnotesize\newlinechar`\^^M\everyeof{\noexpand}\scantokens{#3}}$%
+				}%
+			}%
+	\fi
+	\medbreak
+	\endgroup
+}
+
+\begingroup
+	\catcode`\<13 \catcode`\>13
+	\gdef\Verb{\relax\ifmmode\hbox\else\leavevmode\null\fi
+		\bgroup
+			\verb@eol@error \let\do\@makeother \dospecials
+			\verbatim@font\@noligs
+			\ltjsetparameter{autoxspacing=false}% for japanese
+			\catcode`\<13 \catcode`\>13 \def<{\begingroup%
+                          $\langle$\nobreak% removed \itshape for japanese
+				}\def>{\nobreak$\rangle$\endgroup}%
+			\@ifstar\@sverb\@verb}
+\endgroup
+
+\newcommand\falseverb[1]{{\ttfamily\detokenize\expandafter{\string#1}}}
+
+\def\CFengdate@i#1/#2/#3\@nil{\number#3\relax\ifnum#3=1 \space\fi\space \ifcase#2 \or january\or february\or march\or april\or may\or june\or july\or august\or september\or october\or november\or december\fi\space#1}
+\edef\CFengdate{\expandafter\CFengdate@i\CFdate\@nil}
+
+\def\CFjapdate@i#1/#2/#3\@nil{#1年#2月\number#3日}
+\edef\CFjapdate{\expandafter\CFjapdate@i\CFdate\@nil}
+
+\DeclareRobustCommand\CF{%
+  \texorpdfstring{%
+	\textsf{%
+		chem%
+		\if\string b\detokenize\expandafter{\f@series}%
+			\lower0.01em\hbox{\itshape f}\kern-0.06em
+		\else
+			\lower0.048em\hbox{\kern-0.04em \itshape f}\kern0.03em
+		\fi ig%
+		}%
+		\xspace}{chemfig}}
+\makeatother
+
+\usepackage{luatexja-fontspec}
+\renewcommand\jttdefault{\mcdefault}
+\DeclareRobustCommand{\dmd}{% double em-dash
+  \texorpdfstring{%
+    \tikz[baseline=(dmd.base),inner sep=0pt, outer sep=0pt]\node[xscale=2] (dmd) {---};}{---}}
+
+\ltjsetparameter{alxspmode={"2329,preonly}}% LEFT-POINTING ANGLE BRACKET
+\ltjsetparameter{alxspmode={"3008,preonly}}% LEFT ANGLE BRACKET
+\ltjsetparameter{alxspmode={"27E8,preonly}}% MATHEMATICAL LEFT ANGLE BRACKET
+\ltjsetparameter{alxspmode={"232A,postonly}}
+\ltjsetparameter{alxspmode={"3009,postonly}}
+\ltjsetparameter{alxspmode={"27E9,postonly}}
+\ltjsetparameter{postbreakpenalty={"2329,10000}}
+\ltjsetparameter{postbreakpenalty={"3008,10000}}
+\ltjsetparameter{postbreakpenalty={"27E8,10000}}
+\ltjsetparameter{prebreakpenalty={"232A,10000}}
+\ltjsetparameter{prebreakpenalty={"3009,10000}}
+\ltjsetparameter{prebreakpenalty={"27E9,10000}}
+
+\ltjsetparameter{alxspmode={`\\,allow}}
+\ltjsetparameter{alxspmode={`\{,preonly}}
+\ltjsetparameter{alxspmode={`\},postonly}}
+\ltjsetparameter{alxspmode={`\*,allow}}
+\ltjsetparameter{alxspmode={`#,allow}}
+\ltjsetparameter{alxspmode={`?,allow}}
+\ltjsetparameter{alxspmode={`!,allow}}
+
+\def\degres{\ensuremath{{}^\circ}}
+\newcommand\TIKZ{Ti\textit kZ\xspace}
+\newcommand\molht[1]{\begingroup\parskip3.5pt\par\hfill\chemfig{#1}\hfill\null\par\endgroup}
+\newcommand\boxednode[2]{\fbox{$\mathrm{#1}\vphantom{M_1}$}_{#2}}
+\newcommand\boxedfalseverb[1]{{\raisebox{.5\fontchardp\font`p}{\fboxsep0pt\fbox{\vphantom|\falseverb{#1}}}}}
+\newcommand*\chevrons[1]{{\ltjsetparameter{autoxspacing=false}\textlangle#1\textrangle}}
+\newcommand*\CFkey[1]{{\color{teal}\texttt{\detokenize{#1}}}}
+\newcommand*\CFval[1]{{\color{teal}\textlangle\textit{#1}\textrangle}}
+\newcommand*\CFkv[2]{\CFkey{#1}{\color{teal}${}={}$}\CFval{#2}}
+\newcommand*\CFparam[1]{\CFkey{#1}&\ifcat\relax\detokenize\expandafter\expandafter\expandafter{\useKV[chemfig]{#1}}\relax \textlangle\textit{空}\textrangle\else\texttt{\detokenize\expandafter\expandafter\expandafter{\useKV[chemfig]{#1}}}\fi\\}
+\newcommand*\Chargeparam[1]{\CFkey{#1}&\ifcat\relax\detokenize\expandafter\expandafter\expandafter{\useKV[charge]{#1}}\relax \textlangle\textit{空}\textrangle\else\texttt{\detokenize\expandafter\expandafter\expandafter{\useKV[charge]{#1}}}\fi}
+\newcommand*\CFdelimparam[1]{\CFkey{#1}&\ifcat\relax\detokenize\expandafter\expandafter\expandafter{\useKV[CFdelimiters]{#1}}\relax \textlangle\textit{空}\textrangle\else\texttt{\detokenize\expandafter\expandafter\expandafter{\useKV[CFdelimiters]{#1}}}\fi}
+
+\usepackage[plainpages=false,pdfpagelabels,bookmarks=true,bookmarksopen=true,colorlinks=true,hyperfootnotes=false,filecolor=black,linkcolor=blue,urlcolor=magenta,pdfauthor={Christian TELLECHEA},pdftitle={ChemFig},pdfsubject={Draw 2D molecule with LaTeX},pdfkeywords={ChemFig},pdfcreator={LaTeX}]{hyperref}
+
+\csname @addtoreset\endcsname{section}{part}
+\usepackage{titlesec}
+\titleformat{\part}[display]{\normalfont\filcenter\sffamily\bfseries}{}{0pt}{\Huge}
+
+\renewcommand{\headfont}{\gtfamily\rmfamily\bfseries}
+
+\renewcommand{\thefootnote}{\arabic{footnote}}
+
+\def\CFjapsettablearraystretch{\renewcommand{\arraystretch}{0.875}}% 14/16
+\newlength{\CFjaptabularbaselineskip}
+\setlength{\CFjaptabularbaselineskip}{.875\baselineskip}
+
+\AddToHook{cmd/part/before}{\clearpage}
+
+\begin{document}
+\topsep=3pt plus5pt minus2pt\relax
+\begin{titlepage}
+	\catcode`!12
+	\begin{tikzpicture}[remember picture,overlay]
+		\shade [left color=blue,right color=white]([yshift=2cm]current page.west) rectangle ([xshift=-1cm]current page.south);
+		\shade [left color=white,right color=blue] ([xshift=1cm]current page.south) rectangle ([yshift=2cm]current page.east);
+		\filldraw[black](current page.north west) rectangle ([yshift=7cm]current page.east);
+		\shade[top color=black,bottom color=blue]([yshift=7cm]current page.east)rectangle([yshift=2.5cm]current page.west);
+		\filldraw[black!55!blue!100]([yshift=2.5cm]current page.east)rectangle([yshift=2cm]current page.west);
+	\end{tikzpicture}
+	\begin{center}
+		\color{white}\sffamily\fontsize{50pt}{50pt}\selectfont\CF\par
+		\Large v\CFver\par
+		\CFjapdate\par\bigbreak
+		\normalsize Christian Tellechea\smallbreak
+		\href{mailto:unbonpetit@netc.fr}{\texttt{unbonpetit@netc.fr}}\par\vskip1.5cm
+		\huge 分子描画のための\TeX{}パッケージ%
+	\end{center}
+	\vskip4cm
+	\begin{center}
+		\scriptsize
+		\setchemfig{atom sep=3em}%
+		\chemfig{-[::-30](-[5])(-[7])-[::+60]-[::-60]O-[::+60](=[::-45]O)-[::+90]HN>:[::-60](-[::+60]**6(------))-[::-30](<:[2]OH)-[::-60](=[6]O)-[::+60]O>:[::-60]*7(---?(<[::-120]OH)-(<|[1]CH_3)(<:[::-90]CH_3)-(-[1](<[::+80]HO)-[0](=[::+60]O)-[7](<|[::+130]CH_3)(-[::+75](<|[2]OH)-[::-60]-[::-60](<[::+30]O-[::-90])-[::-60](<[::+90])(<:[::+30]O-[7](-[6]CH_3)=[0]O)-[::-60])-[6]-[5,1.3]?(<:[7]O-[5](=[::-60]O)-[6]**6(------)))=(-[2]CH_3)-)}%
+		\par
+		{\sffamily\small タキソテール（ドセタキセル）}%
+	\end{center}
+	\vskip1.5cm
+	\hfill
+	\hbox to 0pt{\hss\scriptsize
+		\setchemfig{bond offset=1pt,atom sep=2.5em,compound sep=5em,arrow offset=6pt}
+		\schemestart
+		  \chemfig{(-[:-150]R')(-[:-30]R)=[2]N-[:30]OH}
+		  \arrow{<=>[\chemfig{H^\oplus}]}
+		  \chemfig{(-[@{a0}:-150]R')(-[:-30]R)=[2]@{a1}N-[@{b0}:30]@{b1}\chemabove{O}{\scriptstyle\oplus}H_2}
+		  \chemmove[red,-stealth,red,shorten <=2pt]{
+		      \draw(a0)..controls +(135:2mm) and +(215:4mm).. (a1);
+		      \draw(b0)..controls +(120:2mm) and +(180:3mm).. ([yshift=7pt]b1.180);}
+		  \arrow{<=>[\chemfig{{-}H_2O}]}[,1.1]
+		  \chemleft[{\subscheme[90]{%
+		    \chemfig{R'-\chemabove{N}{\scriptstyle\oplus}~C-R}
+		    \arrow{<->}[,0.75]
+		    \chemfig{R'-\charge{90=\:}{N}=@{a1}\chemabove{C}{\scriptstyle\oplus}-R}}}\chemright]
+		  \arrow{<=>[\chemfig{H_2@{a0}\charge{0=\:,90=\:}{O}}]}[,1.1]
+		  \chemmove[red,-stealth,red,shorten <=3pt]{
+		      \draw(a0)..controls+(90:10mm)and+(45:10mm)..([yshift=6pt]a1.45);}
+		  \chemfig{*6(R\rlap{$'$}-N=(-R)-\chemabove{O}{\scriptstyle\oplus} H_2)}
+		  \arrow{<=>[\chemfig{{-}H^\oplus}]}
+		  \chemfig{*6(R\rlap{$'$}-N=(-R)-OH)}
+		  \arrow
+		  \chemfig{*6(R\rlap{$'$}-\chembelow{N}{H}-(-R)(=[2]O))}
+		\schemestop\hss}\hfill\null
+	\begin{center}
+		\sffamily\small ベックマン転移%
+	\end{center}
+\end{titlepage}
+
+\parindent0pt\pagestyle{plain}
+\tableofcontents
+\parskip\medskipamount
+
+\setitemize{leftmargin=3em,topsep=0pt,parsep=0pt,itemsep=0pt}
+\part{はじめに}
+
+\section{バージョン1.6における変更点}
+\subsection{ルイス構造式}
+2020年3月5日公開のバージョン1.5から通知していた通り、非推奨だったマクロ\verb|\lewis|および\verb|\Lewis|は\CF{}パッケージで削除されました。
+ルイス構造式を描画するには\verb|\charge|および\verb|\Charge|の使用が推奨されます（\pageref{charge}ページ参照）。
+
+マクロ\verb|\lewis|および\verb|\Lewis|の使用が不可欠な場合は、\CF{}パッケージを読み込んだ後に\verb|\input|を使って\verb|chemfig-lewis.tex|を読み込んでください。
+\subsection{debugキーワード}
+ブール値を取るキーワード\CFkey{debug}が新設されました。デフォルト値はfalseです。
+trueに設定された場合は、各原子グループの（矩形の）輪郭が赤で、それぞれの原子の輪郭が灰色で描かれます。
+原子グループの番号は赤い四角形の上に表示され、各原子の番号も同様に表示されます。（原子の番号は1から始まり、左から右へ付けられます。）
+この番号によって、各原子のノード名を\verb|n<a>-<b>|の形式で知ることができます。
+ここで\verb|<a>|は原子グループの番号、\verb|<b>|は原子の番号です。
+
+次の例では、青い矢印が原子\verb|n1-3|、つまり``C2''から出て、原子\verb|n2-4|つまり``Gz''に入ります。
+
+\exemple{ノード名}/\setchemfig{debug=true}
+\chemfig{A1BC2-[:30]DxEyFGz-H3I}
+\chemmove{\draw[blue](n1-3)to[out=75,in=90](n2-4);}/
+
+\subsection{反応式中の\texttt\#{}トークン}
+反応式を書く際、\verb|\chemfig|マクロの引数の中に\verb|#|トークンを使うことができるようになりました。
+\pageref{modif.retrait}ページを参照してください。
+
+\subsection{gchemnameキーワード}
+
+このキーワードは\verb|\chemnameinit|および\verb|\chemname|における最大の深さをグローバルに保存するかローカルに保存するかを指定します。
+デフォルト値はtrueです。
+
+\subsection{``schemestart code''キーワードと``schemestop code''キーワード}
+
+これら2つのキーワードに含まれる値（デフォルトでは空）は、それぞれ反応式の最初と最後に実行されます。
+入れ子の反応式内では実行されません。
+
+例えば\verb|schemestart code=\chemnameint{}|と書くことで、各反応式の開始時に名前の深さをリセットできます。
+
+\subsection{``baseline''キーワード}
+
+このキーワードに値を設定することで、分子の垂直位置を調整できます。
+\pageref{baseline}ページを参照してください。
+
+\subsection{くさび形結合の接合}
+\CFkey{bond join}を\CFval{true}にすると、くさび形結合が別のくさび形結合あるいは別の単結合と連結する際に、よりきれいに描画されます。
+\pageref{joinCram}ページを参照してください。
+
+\section{\protect\CF{}を使う}
+\CF{}パッケージを使うには、以下の行をプリアンブルに追加します。
+\begin{itemize}
+	\item $\varepsilon$\TeX{}の場合は{\color{blue}\verb-\input chemfig.tex-}
+	\item \LaTeX{}の場合は{\color{blue}\verb-\usepackage{chemfig}-}
+\end{itemize}
+
+いずれの場合も、もしまだ読み込まれていなければ、\CF{}が\TIKZ{}パッケージを読み込みます。
+
+分子描画のための最も重要なコマンドは\Verb|\chemfig{<コード>}|です。
+引数\Verb|<コード>|は分子構造を記述する文字列であり、その規則についてはこのマニュアルで説明します。
+
+シンプルで柔軟かつ直感的な構文を維持しながら、可能な限り多くの分子形状を描画できるように配慮されています。
+それでもなお、分子の二次元構造を記述する\Verb-<コード>-の複雑さは、描こうとする分子の複雑さに比例します。
+
+\verb|\chemfig|コマンドは\verb|tikzpicture|環境内に、\TIKZ{}パッケージが提供するコマンドを使って分子を描画します。
+\TIKZ{}を使用していることから、以下のような特徴を持ちます。
+\begin{itemize}
+\item ユーザーは自分の好きなエンジンを使用できます。
+pdf\LaTeX{}では\falseverb{dvi モード}（tex $\longrightarrow$ dvi $\longrightarrow$ ps $\longrightarrow$ pdf）
+でも\falseverb{pdf モード}（tex $\longrightarrow$ pdf）
+でも同じように使用できます。
+\TIKZ{}を使用することで、その基盤である\falseverb{pgf}によって、いずれのモードでも同一の描画結果が得られます。
+\item \falseverb{バウンディングボックス}は\TIKZ{}によって自動的に計算されるので、ユーザーはテキストと重なる心配をする必要がありません。
+しかし、分子を段落内に描く場合はその位置合わせに注意しなくてはなりません。
+分子の\falseverb{バウンディングボックス}を表示させると、%
+\insertxkanjiskip%
+{\fboxsep0pt \fbox{\chemfig{H_3C-C(-[:-30]OH)=[:30]O}}}%
+\insertxkanjiskip%
+このようになります。
+\end{itemize}
+
+\section{謝辞}
+このパッケージが日の目を見ることができたのは、発案者であるChristophe \textsc{Casseau}の協力のおかげです。
+コードを書く前に彼が提供してくれた支援と、彼が行ったテストに感謝します。
+\medbreak
+また、このマニュアルの英訳を申し出てくれたTheo \textsc{Hopman}に心から感謝します。
+
+\part{\protect\CF{}の機能}
+この部では\CF{}の最も一般的な機能を説明します。
+これでたいていの分子を描くことができるようになります。
+ここでは、理論的な観点から機能を説明します。
+この部の目的は実際の分子を描くことではなく、\CF{}の機能を形式的に説明することです。
+第\ref{utilisation.avancee}部「高度な使用方法」（\pageref{utilisation.avancee}ページ）では、より実用的で、最も要求の厳しい用途のための高度な機能を説明します。
+また、具体的な分子を描画する方法にも着目します（\pageref{exemples.commentes}ページ）。最後に、分子とその描画に使われるコードの例を示します。
+
+\section{\texttt{\textbackslash chemfig}マクロ}
+\verb|\chemfig|は次の構文を使用します。
+\begin{center}
+	\Verb|\chemfig[<キーワード>=<値>形式のリスト]{<分子コード>}|
+\end{center}
+角括弧内のオプション引数はこの分子の描画に使用するパラメーターを設定します。
+パラメーターは現在の分子に対してのみ変更され、マクロ実行後は以前の値に戻ることに注意が必要です。
+パラメーターを永続的に変更したい場合は\Verb|\setchemfig{<キーワード>=<値>}|マクロを使用してください。
+
+以下にパラメーターの完全なリストとデフォルト値を示します\label{listeparametres}。
+なお、リスト末尾にある\CFkey{scheme debug}以降の\chevrons{キーワード}は
+反応式を描く際のもので、\verb|\chemfig|マクロのオプション引数では無効であり、単に無視されることに注意してください。\par
+\leavevmode\hfill
+\begin{minipage}[t]{.45\linewidth}
+\CFjapsettablearraystretch
+	\begin{longtable}{rl}\hline
+		\chevrons{キーワード} & デフォルト\chevrons{値}\\\hline\endhead
+		\CFparam{chemfig style}
+		\CFparam{atom style}
+		\CFparam{bond join}
+		\CFparam{fixed length}
+		\CFparam{cram rectangle}
+		\CFparam{cram width}
+		\CFparam{cram dash width}
+		\CFparam{cram dash sep}
+		\CFparam{atom sep}
+		\CFparam{bond offset}
+		\CFparam{double bond sep}
+		\CFparam{angle increment}
+		\CFparam{node style}
+		\CFparam{bond style}
+		\CFparam{baseline}
+		\CFparam{debug}
+		\CFparam{cycle radius coeff}
+		\CFparam{stack sep}
+		\CFparam{show cntcycle}
+		\CFparam{autoreset cntcycle}\hline
+	\end{longtable}
+\end{minipage}\hfill
+\begin{minipage}[t]{.45\linewidth}
+\CFjapsettablearraystretch
+	\begin{longtable}{rl}\hline
+		\chevrons{キーワード} & デフォルト\chevrons{値}\\\hline\endhead
+		\CFparam{gchemname}
+		\CFparam{schemestart code}
+		\CFparam{schemestop code}
+		\CFparam{scheme debug}
+		\CFparam{compound style}
+		\CFparam{compound sep}
+		\CFparam{arrow offset}
+		\CFparam{arrow angle}
+		\CFparam{arrow coeff}
+		\CFparam{arrow style}
+		\CFparam{arrow double sep}
+		\CFparam{arrow double coeff}
+		\CFparam{arrow double harpoon}
+		\CFparam{arrow label sep}
+		\CFparam{arrow head}
+		\CFparam{+ sep left}
+		\CFparam{+ sep right}
+		\CFparam{+ vshift}\hline
+	\end{longtable}
+\end{minipage}\hfill\null\bigbreak
+
+\Verb|<分子コード>|には、このドキュメントで説明する構文に従って、分子を描画するための指示を記述します。
+使用できる文字に制限はありません。
+\begin{itemize}
+	\item 全てのカテゴリーコード11と12の文字、つまり大文字、小文字、数字、算術演算子（\texttt+ \texttt- \texttt* \texttt/ \texttt=）、
+          アクティブかどうかによらず句読点類
+          （\verb|.| \verb|,| \verb|;| \verb|:| \verb|!| \verb|?| \verb|'| \verb|`| \verb|"| \verb-|-）、括弧や角括弧
+	\item ``\verb|~|''や``\verb|#|''\footnote{\texttt{\textbackslash chemfig}マクロがマクロの引数に含まれる場合に
+            \texttt\#{}の重複を避けるために、\texttt\#{}のかわりに\texttt{\textbackslash\#}マクロや
+            \texttt{\textbackslash CFhash}マクロを使うことができます。}%
+          などのより特殊な文字や、``\verb|^|''や``\verb|_|''のような通常数式モードで使用される文字
+	\item 空白。ただし、原子は数式モードで扱われるので、デフォルトでは無視されます。
+	\item 波括弧``\verb|{|''および``\verb|}|''。これはグルーピングやマクロ引数の区切りとしての通常の動作をします。
+	\item マクロ
+\end{itemize}
+
+\section{原子グループ}
+
+分子を描くということは、本質的には、原子グループを線で結ぶということです。つまり分子\chemfig{O=O}の場合は、
+2つの原子グループがあり、それぞれが単一の原子``O''で構成されています。
+
+{\fboxsep1pt
+しかし、次の分子
+\molht{H_3C-C(-[:-30]OH)=[:30]O}
+は、``$\mathrm{H_3C}$''、``C''、``O''、``OH''の4つの原子グループで構成されています。
+後で述べる理由から、\CF{}は各グループを単一の原子に分解します。
+次に来る大文字または特殊文字\insertxkanjiskip{\ttfamily\boxedfalseverb{-} \boxedfalseverb{=} \boxedfalseverb{~} \boxedfalseverb{(} \boxedfalseverb{!} \boxedfalseverb{*} \boxedfalseverb{<} \boxedfalseverb{>} \boxedfalseverb{@}}\insertxkanjiskip{}までを原子として扱います。
+\CF{}はグループを原子に分割する際、波括弧内の全ての文字を無視します。
+
+したがって、最初の原子グループ``$\mathrm{H_3C}$''は$\boxednode{H_3}{}$と$\boxednode C{}$の2つの原子に分割されます。
+化学的には、これらはもちろん本当の原子ではありません。例えば$\mathrm{H_3}$は3つの水素原子から構成されています。
+以下では原子という単語を\CF{}の定義に従って使用します。
+つまり\CF{}は上の分子をこのように見ています。
+\renewcommand*\printatom[1]{\fbox{\ensuremath{\mathrm{#1}}}}
+\molht{H_3C-C(=[:30]O)(-[:-30]OH)}}
+
+原子グループの先頭にある空白は無視されます。
+
+\section{最初の原子の役割}\label{premieratome1}
+分子全体の配置は、最初に配置される原子、すなわち最初の原子グループの最初の原子に依存します。
+この最初の原子の\TIKZ{}アンカー``\verb|base east|''は、現在の行のベースライン上に配置されます。
+（このマニュアルの例では灰色で描かれています。）
+
+\exemple{最初の原子の影響}/\chemfig{A-B}\qquad
+\chemfig{-B}\qquad
+\chemfig{A^1-B}/
+
+任意の垂直オフセットを設定したり、原子グループをベースライン上に配置するには、
+キーワード\chevrons{baseline}を使用します（\pageref{baseline}ページ参照）。
+
+\section{色々な結合}
+\CF{}では、2つの原子間の結合として以下の9種類を使用することができ、それぞれ\insertxkanjiskip\boxedfalseverb-、\boxedfalseverb=、\boxedfalseverb~、\boxedfalseverb>、\boxedfalseverb<、\boxedfalseverb{>:}、\boxedfalseverb{<:}、\boxedfalseverb{>|}、\boxedfalseverb{<|}
+で記述します。\label{types.liaisons}
+\begin{center}
+\CFjapsettablearraystretch
+\begin{tabular}{>{\centering\arraybackslash}m{1.7cm}>{\centering\arraybackslash}m{3cm}>{\centering\arraybackslash}m{2cm}m{4cm}}
+\hline
+結合番号      &記述                 &出力      &結合の種類\\\hline
+1            &\verb+\chemfig{A-B}+ &\chemfig{A-B} &単結合\\
+2            &\verb+\chemfig{A=B}+ &\chemfig{A=B} &二重結合\\
+3            &\verb+\chemfig{A~B}+ &\chemfig{A~B} &三重結合\\
+4            &\verb+\chemfig{A>B}+ &\chemfig{A>B} &右実線くさび\\
+5            &\verb+\chemfig{A<B}+ &\chemfig{A<B} &左実線くさび\\
+6            &\verb+\chemfig{A>:B}+&\chemfig{A>:B}&右破線くさび\\
+7            &\verb+\chemfig{A<:B}+&\chemfig{A<:B}&左破線くさび\\
+8            &\verb+\chemfig{A>|B}+&\chemfig{A>|B}&右中空くさび\\
+9            &\verb+\chemfig{A<|B}+&\chemfig{A<|B}&左中空くさび\\\hline
+\end{tabular}
+\end{center}
+\label{double bond sep}\chevrons{キーワード} \CFkv{double bond sep}{長さ}を使うと
+二重結合と三重結合での線同士の距離を調整できます。この距離のデフォルトは2ptです。
+
+\label{longueur.liaison}原子間に結合が作られるとき、それぞれの原子は見えない矩形に収められていることに注意してください。
+この2つの矩形の中心は「原子間距離」と呼ばれる調整可能な距離$\Delta$だけ離れています。
+さらに、結合は矩形の辺と直接繋がっている訳ではありません。
+矩形の辺と結合の始点・終点は、同じく調整可能な距離$\delta$だけ離れています。
+理解の補助となるように、次の図では矩形を表示しています。
+\begin{center}
+\begin{tikzpicture}[every node/.style={anchor=base,inner sep=1.5pt,outer sep=0pt,minimum size=0pt},baseline]
+	\node[draw] at(0,0)(aa){\huge A};
+	\node[draw]at(4,0)(bb){\huge B};
+	\path[shorten <=10pt,shorten >=10pt,draw](aa)--(bb)coordinate[pos=0](al) coordinate[pos=1](bl);
+	\node[draw,circle,fill,blue,minimum size=1.5pt,inner sep=0pt]at(al){};
+	\node[draw,circle,fill,blue,minimum size=1.5pt,inner sep=0pt]at([xshift=10pt]al){};
+	\node[draw,circle,fill,blue,minimum size=1.5pt,inner sep=0pt]at(bl){};
+	\node[draw,circle,fill,blue,minimum size=1.5pt,inner sep=0pt]at([xshift=-10pt]bl){};
+	\draw[blue,dash pattern=on 1pt off 1pt](bl)--([yshift=0.7cm]bl);
+	\draw[blue,dash pattern=on 1pt off 1pt]([xshift=-10pt]bl)--([xshift=-10pt,yshift=0.7cm]bl);
+	\draw[stealth-stealth]([yshift=0.6cm]bl.center)--([xshift=-10pt,yshift=0.6cm]bl.center) node [midway,above,draw=none]{$\delta$};
+	\draw[blue,dash pattern=on 1pt off 1pt](al)--([yshift=0.7cm]al);
+	\draw[blue,dash pattern=on 1pt off 1pt]([xshift=10pt]al)--([xshift=10pt,yshift=0.7cm]al);
+	\draw[stealth-stealth]([yshift=0.6cm]al.center)--([xshift=10pt,yshift=0.6cm]al.center) node [midway,above,draw=none]{$\delta$};
+	\node[draw,circle,fill,red,minimum size=2pt,inner sep=0pt]at(aa){};
+	\node[draw,circle,fill,red,minimum size=2pt,inner sep=0pt]at(bb){};
+	\draw[stealth-stealth]([yshift=1cm]aa.center)--([yshift=1cm]bb.center) node [midway,above,draw=none] {$\Delta$} ;
+	\draw[red,dash pattern=on 2pt off2pt](aa.center)--([yshift=1.1cm]aa.center);
+	\draw[red,dash pattern=on 2pt off2pt](bb.center)--([yshift=1.1cm]bb.center);
+\end{tikzpicture}
+\end{center}
+
+\label{atom sep}\chevrons{キーワード} \CFkv{atom sep}{長さ}は原子間距離$\Delta$を設定します。
+
+\exemple{原子間距離}|\chemfig[atom sep=2em]{A-B}\par
+\chemfig[atom sep=50pt]{A-B}|
+
+\label{bond offset}\chevrons{キーワード} \CFkv{bond offset}{長さ}は
+結合と原子の距離$\delta$を設定します。デフォルト値は 2pt です。
+\exemple{結合の調整}|\chemfig[bond offset=0pt]{A-B}\par
+\chemfig[bond offset=5pt]{A-B}|
+
+ある結合が別の結合と直接繋がっている場合は、\CF{}は空のグループ\verb-{}-を配置します。
+この空のグループの周りの距離$\delta$は0です。
+\exemple{空のグループ}/\chemfig{A-B=-=C}/
+
+\label{bond style}\chevrons{キーワード} \CFkv{bond style}{tikzコード}は結合のスタイルを設定します。
+\CFval{tikzコード}はデフォルトでは空です。
+単一の結合のスタイルを変更したい場合については\pageref{perso-liaisons}ページを参照してください。
+\exemple{結合のスタイル}/\chemfig[bond style={line width=1pt,red}]{A-B=C>|D<E>:F}/
+
+\label{modif.retrait}距離$\delta$を1つの結合のみに指定したい場合は、\verb-#-、\verb|\#|マクロ、あるいは\verb|\CFhash|マクロを使用します。
+もし\verb|\chemfig|マクロがあるマクロの引数の中にある場合は\verb-#-を\textbf{使ってはいけません}。
+そのような場合は\verb|\#|か\verb|\CFhash|を使ってください。
+
+トークン\verb-#-、\verb|\#|および\verb|\CFhash|は結合記号の\textbf{直後}に書かねばならず、
+``\Verb-(<距離1>,<距離2>)-''の形式で括弧内に書かれた引数が必要です。
+ここで\Verb-<距離1>-は結合の始点での距離$\delta$であり、\Verb-<距離2>-は結合の終点での距離です。
+\Verb-<距離2>-が省略された場合、終点での距離にはその時点で有効な$\delta$の値が使われます。
+以下に``B''に入る結合の距離、``B''から出る結合の距離、その両方を0にする方法をそれぞれ示します。
+なおこの例では見やすさのために、原子・結合間距離を4ptにしてあります。
+\begingroup
+\catcode`\#12
+\exemple{結合・原子間距離の微調整}/\setchemfig{bond offset=4pt}
+\chemfig{A-B-C}\par
+\chemfig{A-#(,0pt)B-C}\par
+\chemfig{A-B-#(0pt)C}\par
+\chemfig{A-#(,0pt)B-#(0pt)C}/
+\endgroup
+
+デフォルトでは、原子グループ内の全ての原子は\falseverb{数式モード}で組まれます（空白は無視されます）。
+そのため、下付き文字や上付き文字のような数式モード特有のコマンドを書くことができます\footnote{%
+  指数や添え字を含む原子グループは配置の際に問題になることがあります。\pageref{alignement.vertical}ページを参照してください。}。
+\exemple{数式モード}|\chemfig{A_1B^2-C _ 3 ^ 4}|
+
+くさび形結合専用の設定もあります。
+\begin{itemize}
+	\item \CFkv{cram width}{長さ}は三角形の底辺の長さで、デフォルトは1.5ptです。
+	\item \CFkv{cram dash width}{長さ}は破線の太さで、デフォルトは1ptです。
+	\item \CFkv{cram dash sep}{長さ}は破線間の距離で、デフォルトは2ptです。
+\end{itemize}
+
+これら3つの値を変更した場合の例を示します。
+
+\exemple{くさび形結合の形の変更}-\chemfig[cram width=10pt,
+         cram dash width=0.4pt,
+         cram dash sep=1pt]{A>B>:C>|D}-
+
+\section{結合の角度}
+
+それぞれの結合に角括弧でオプション引数を与えることができます。
+このオプション引数はカンマで区切られた5つのオプションフィールドで構成されており、これによって結合の全てを制御できます。
+最初のフィールドは、結合の角度を設定します。
+角度は水平を基準として、反時計回りに大きくなります。
+このフィールドが空の場合、角度はデフォルトの0\degres{}になります。
+デフォルト値を変更する方法は後で説明します。
+
+角度を指定するための方法はいくつかあります。
+\subsection{定義済みの角度}
+角度フィールドが整数の場合、結合が水平に対してなす角度を45\degres{}の倍数で表します。
+例えば、\verb-[0]-は0\degres、\verb-[1]-は45\degres{}のようになります。
+
+\exemple{定義済みの角度}|\chemfig{A-B-[1]C-[3]-D-[7]E-[6]F}|
+
+これらの角度は原子が空の場合でも有効であり、このことは以下で紹介する全ての機能に当てはまります。
+\exemple{定義済みの角度と空のグループ}|\chemfig{--[1]-[3]--[7]-[6]}|
+
+\label{angle increment}\chevrons{キーワード} \CFkv{angle increment}{角度}は
+結合角度の計算に使用されるデフォルトの角度を設定します。
+\exemple{定義済みの角度の設定}/デフォルト（45度）：\chemfig{-[1]-[-1]-[1]-[-1]}
+
+30度：\chemfig[angle increment=30]{-[1]-[-1]-[1]-[-1]}/
+
+\subsection{角度の直接指定}
+水平に対する角度を度単位で指定したい場合は、その角度を\Verb-[:<角度>]-形式で、オプションの角度フィールドに書きます。
+\Verb-<角度>-は、必要な場合は$[0,360)$の範囲におさまるように調整されます。
+
+\exemple{角度の直接指定}/\chemfig{A-[:30]B=[:-75]C-[:10]D-[:90]>|[:60]-[:-20]E-[:0]~[:-75]F}/
+
+\subsection{相対角度}\label{angle.relatif}
+直前の結合からの相対的な結合角度を指定できると便利な場合がよくあります。そのような場合は
+\Verb-[::<相対角度>]-形式を使うことができます。
+\Verb-<相対角度>-の符号が\verb-+-の場合は、その符号は省略できます。
+
+次の例は、最初の結合の角度が$-5\degres$で、
+残りの結合角度が20\degres{}ずつ増加する場合です。
+\exemple{相対角度の使用例}|\chemfig{A-[:-5]-[::+20]-[::20]B-[::+20]-[::20]C-[::20]}|
+
+相対角度の連鎖は、角度を直接指定したり定義済みの角度を書くことで「断ち切る」ことができます。
+次の例では、原子``B''に315\degres{}の結合が続いています。
+
+\exemple{相対角度の後に直接指定する場合の例}|\chemfig{A-[:-5]-[::20]-[::20]B-[7]-[::20]C-[::20]}|
+
+\section{結合の長さ}
+
+実際には「結合の長さ」ではなく「原子間の距離」と言うべきでしょう。
+というのも、すでに\pageref{longueur.liaison}ページで述べたように、
+\falseverb{atom sep}で設定される原子間の間隔のみが調節可能だからです。
+このパラメーターが設定されると、結合の長さは原子の種類に依存し、結合が水平となす角度にも幾分かは依存します。
+2つの「スリムな」原子の場合は、2つの太った原子の場合よりも、側面同士の間隔が大きくなります。
+次の例で明らかなように、``I''原子は``M''原子より幅が狭いので、``I''原子間の結合は``M''原子間の結合より長く描画されます。
+\exemple{原子の大きさの影響}|\chemfig{I-I}\par
+\chemfig{M-M}|
+
+原子の大きさの問題は、原子が下付き文字や上付き文字を含む場合に特に顕著になります。
+次の例では、結合が極端に短く、負号$-$と間違えてしまうかもしれません。
+\exemple{短すぎる結合}|\chemfig{A^{++}_{2}-B^{-}_3}|
+
+指数の\insertxkanjiskip\verb+-+\insertxkanjiskip{}は\emph{波括弧の中に書かれている}ことに注意してください。
+さもないと\CF{}は原子をこの文字で区切って、結合の記号であると解釈します。
+そうすると原子は``\verb-B^-''となり、予期しない結果となってしまいます。
+
+\CF{}の原子間間隔についての挙動を変更することができます。
+ブール値を取る\chevrons{キーワード} \CFkey{fixed length}を\CFval{true}に設定すると、
+\chevrons{キーワード} \CFkey{atom sep}すなわち$\Delta$は、原子の中心間の距離ではなく\emph{結合の長さ}として定義されます。
+これにより、結合は一定の長さを持つことになります。一方で原子の中心間の距離は原子の大きさに依存して変化することになります。
+\pageref{longueur.liaison}ページの図において、\CFkey{fixed length}のそれぞれの値で何が起こるかを示したのが次の図です。
+
+\begin{center}
+\begin{tabular}{c@{\kern2cm}c}
+	\CFkv{fixed length}{false}&\CFkv{fixed length}{true}\\[2ex]
+	\begin{tikzpicture}[every node/.style={anchor=base,inner sep=1.5pt,outer sep=0pt,minimum size=0pt},baseline]
+	\node[draw] at(0,0)(aa){\huge A};
+	\node[draw]at(4,0)(bb){\huge B};
+	\path[shorten <=10pt,shorten >=10pt,draw](aa)--(bb)coordinate[pos=0](al) coordinate[pos=1](bl);
+	\node[draw,circle,fill,blue,minimum size=1.5pt,inner sep=0pt]at(al){};
+	\node[draw,circle,fill,blue,minimum size=1.5pt,inner sep=0pt]at([xshift=10pt]al){};
+	\node[draw,circle,fill,blue,minimum size=1.5pt,inner sep=0pt]at(bl){};
+	\node[draw,circle,fill,blue,minimum size=1.5pt,inner sep=0pt]at([xshift=-10pt]bl){};
+	\draw[blue,dash pattern=on 1pt off 1pt](bl)--([yshift=0.7cm]bl);
+	\draw[blue,dash pattern=on 1pt off 1pt]([xshift=-10pt]bl)--([xshift=-10pt,yshift=0.7cm]bl);
+	\draw[stealth-stealth]([yshift=0.6cm]bl.center)--([xshift=-10pt,yshift=0.6cm]bl.center) node [midway,above,draw=none]{$\delta$};
+	\draw[blue,dash pattern=on 1pt off 1pt](al)--([yshift=0.7cm]al);
+	\draw[blue,dash pattern=on 1pt off 1pt]([xshift=10pt]al)--([xshift=10pt,yshift=0.7cm]al);
+	\draw[stealth-stealth]([yshift=0.6cm]al.center)--([xshift=10pt,yshift=0.6cm]al.center) node [midway,above,draw=none]{$\delta$};
+	\node[draw,circle,fill,red,minimum size=2pt,inner sep=0pt]at(aa){};
+	\node[draw,circle,fill,red,minimum size=2pt,inner sep=0pt]at(bb){};
+	\draw[stealth-stealth]([yshift=1cm]aa.center)--([yshift=1cm]bb.center) node [midway,above,draw=none] {$\Delta$} ;
+	\draw[red,dash pattern=on 2pt off2pt](aa.center)--([yshift=1.1cm]aa.center);
+	\draw[red,dash pattern=on 2pt off2pt](bb.center)--([yshift=1.1cm]bb.center);
+	\end{tikzpicture}
+	&
+	\begin{tikzpicture}[every node/.style={anchor=base,inner sep=1.5pt,outer sep=0pt,minimum size=0pt},baseline]
+	\node[draw] at(0,0)(aa){\huge A};
+	\node[draw]at(5,0)(bb){\huge B};
+	\path[shorten <=10pt,shorten >=10pt,draw](aa)--(bb)coordinate[pos=0](al) coordinate[pos=1](bl);
+	\node[draw,circle,fill,blue,minimum size=1.5pt,inner sep=0pt]at(al){};
+	\node[draw,circle,fill,blue,minimum size=1.5pt,inner sep=0pt]at([xshift=10pt]al){};
+	\node[draw,circle,fill,blue,minimum size=1.5pt,inner sep=0pt]at(bl){};
+	\node[draw,circle,fill,blue,minimum size=1.5pt,inner sep=0pt]at([xshift=-10pt]bl){};
+	\draw[blue,dash pattern=on 1pt off 1pt](bl)--([yshift=0.7cm]bl);
+	\draw[blue,dash pattern=on 1pt off 1pt]([xshift=-10pt]bl)--([xshift=-10pt,yshift=0.7cm]bl);
+	\draw[stealth-stealth]([yshift=0.6cm]bl.center)--([xshift=-10pt,yshift=0.6cm]bl.center) node [midway,above,draw=none]{$\delta$};
+	\draw[blue,dash pattern=on 1pt off 1pt](al)--([yshift=0.7cm]al);
+	\draw[blue,dash pattern=on 1pt off 1pt]([xshift=10pt]al)--([xshift=10pt,yshift=0.7cm]al);
+	\draw[stealth-stealth]([yshift=0.6cm]al.center)--([xshift=10pt,yshift=0.6cm]al.center) node [midway,above,draw=none]{$\delta$};
+	\draw[stealth-stealth]([yshift=1cm]al)--([yshift=1cm]bl) node [midway,above,draw=none] {$\Delta$} ;
+	\draw[red,dash pattern=on 2pt off2pt](al)--([yshift=1.1cm]al);
+	\draw[red,dash pattern=on 2pt off2pt](bl)--([yshift=1.1cm]bl);
+	\end{tikzpicture}
+\end{tabular}
+\end{center}
+
+環式化合物の場合は、環が正多角形となるように、\CFkv{fixed length}{true}であっても環の描画にはデフォルトの動作が使用されます。
+
+\exemple{固定長の結合}/\chemfig{Cl-Cl}\par
+\chemfig[fixed length=true]{Cl-Cl}/
+
+特にデフォルトの動作では、結合が短くなりすぎるのを避けるために、原子間距離を増やす（あるいは場合によっては減らす）ことが必要になる場合があります。
+そのために、結合のオプション引数は複数のフィールドを持っています。
+すでに見たように、最初のフィールドは角度を指定します。
+2つ目のフィールドは、もし空でなければ、デフォルトの原子間距離$\Delta$の倍率となります。
+したがって\verb+-[,2]+と書くと、この結合は（最初のフィールドが空なので）デフォルトの角度のままで、結合する
+原子間の距離をデフォルトの2倍にする、という意味になります。
+\exemple{結合長の変更}/\chemfig{A^{++}_{2}-[,2]B^{-}_3}\par
+\chemfig{A-B-[,2]C=[,0.5]D}\par
+\chemfig{-=[,1.5]-[,0.75]=[:-20,2]}/
+
+\falseverb{分子の大きさ}はフォントサイズや、\chevrons{キーワード} \CFkey{atom sep}（あるいはその両方）を設定することで変更することができます。
+もし影響範囲を限定したい場合は、これらの変更がグループ内に限定されるように気を付けてください。
+\exemple{分子の大きさの変更}/\normalsize       \chemfig{H-[:30]O-[:-30]H}\par
+\setchemfig{atom sep=2.5em}
+\chemfig{H-[:30]O-[:-30]H}\par
+\small            \chemfig{H-[:30]O-[:-30]H}\par
+\footnotesize     \chemfig{H-[:30]O-[:-30]H}\par
+\scriptsize       \chemfig{H-[:30]O-[:-30]H}\par
+\tiny             \chemfig{H-[:30]O-[:-30]H}/
+
+\section{出発原子と到着原子}
+原子グループは複数の原子を含むことができます。
+いまグループ``ABCD''とグループ``EFG''を結合で繋ぎたいとしましょう。
+\CF{}は最初のグループのどの原子と、2つ目のグループのどの原子を繋ぐかを、水平に対する結合の角度から計算します。
+もし角度が$-90\degres$より大きく90\degres{}未満（360\degres{}の剰余）であれば、
+最初のグループの最後の原子と、2つ目のグループの最初の原子の間に結合を描きます。
+それ以外の場合は、最初のグループの最初の原子と、2つ目のグループの最後の原子の間に結合を描きます。
+
+次の例はいずれも結合の角度が$(-90,90)$の範囲にある場合で、したがっていずれもDとEの間に結合が描かれます。
+\exemple{デフォルトの原子の結合}|\chemfig{ABCD-[:75]EFG}\quad
+	\chemfig{ABCD-[:-85]EFG}\quad
+	\chemfig{ABCD-[1]EFG}|
+
+次の例は結合角度が$[90,270]$の範囲にある場合で、このとき結合はAとGの間に描かれます。
+\exemple[60]{デフォルトの原子の結合}|\chemfig{ABCD-[:100]EFG}\quad
+	\chemfig{ABCD-[:-110]EFG}\quad
+	\chemfig{ABCD-[5]EFG}|
+
+\CF{}が決定したものとは別の原子を結合相手にしたい場合もあるでしょう。
+そのような場合は結合のオプション引数を使って、出発原子と到着原子を次のように指定します。
+\begin{center}
+	\Verb/[,,<整数1>,<整数2>]/
+\end{center}
+ここで\Verb-<整数1>-と\Verb-<整数2>-は繋ぎたい出発原子と到着原子の番号です。
+そのような原子が存在しない場合はエラーメッセージが出力されます。
+\exemple{結合する原子の指定}|\chemfig{ABCD-[:75,,2,3]EFG}\qquad
+	\chemfig{ABCD-[:75,,,2]EFG}\qquad
+	\chemfig{ABCD-[:75,,3,2]EFG}|
+
+\section{結合のカスタマイズ}\label{perso-liaisons}
+結合のオプション引数の5番目、すなわち最後のフィールドは、4つ目のカンマの後にあります。
+\begin{center}
+	\Verb/[,,,,<tikzコード>]/
+\end{center}
+
+\Verb-<tikz コード>-は結合を描画する際に直接\TIKZ{}に渡されます。
+ここには色（\verb-red-）や破線の種類（\verb-dash pattern=on 2pt off 2pt-）、太さ（\verb-line width=2pt-）を指定したり、
+\TIKZ{}のdecorationライブラリーを読み込んでいれば、装飾を指定することもできます。
+``\verb-draw=none-''とすれば結合は不可視になります。
+複数の属性を指定をするには、\TIKZ{}の構文と同様に、カンマで区切って記述します。
+\exemple{\TIKZ{}コードを渡す}|\chemfig{A-[,,,,red]B}\par
+\chemfig{A-[,,,,dash pattern=on 2pt off 2pt]B}\par
+\chemfig{A-[,,,,line width=2pt]B}\par
+\chemfig{A-[,,,,red,line width=2pt]B}|
+
+\TIKZ{}では多数のdecorationライブラリーが利用可能です。
+例えば``\verb-pathmorphing-''ライブラリーを読み込むと、結合に波線を使うことができるようになります。
+``\verb-pathmorphing-''ライブラリーを読み込むには、プリアンブルに\verb-\usetikzlibrary{decorations.pathmorphing}-と書きます。
+\exemple{波線の結合}|\chemfig{A-[,3,,,decorate,decoration=snake]B}|
+
+くさび形結合では太さと破線の設定は無視されます。
+
+\section{結合同士の接合}
+デフォルトでは、単結合を表す線は接合されないため、線幅が大きいと目立ちすぎて見苦しい場合があります。
+
+これを「醜い\footnote{\texttt{\detokenize{http://tex.stackexchange.com/questions/161796/ugly-bond-joints-in-chemfig}}参照。}」と感じる場合は、単結合同士を接合することができますが、この場合はコンパイル時間が少し増加します。
+これを有効にするには\chevrons{キーワード} \CFkv{bond join}{真偽値}マクロに\CFval{true}を設定します。
+デフォルトは、望ましい動作である\CFval{false}です。
+
+\exemple{結合同士の接合}/\setchemfig{bond style={line width=3pt}}
+\chemfig{-[1]-[7]}と
+\chemfig[bond join=true]{-[1]-[7]}/
+
+この問題がより顕著になるのは、くさび形結合が単結合や別のくさび形結合に繋がる場合です。
+この場合も同様に\CFkey{bond join}を\CFval{true}に設定することで、より美しく接合されます。\label{joinCram}
+
+\exemple{くさび形結合の接合}/
+\chemfig{<[:-20]>[:50]}\qquad
+\chemfig[bond join]{<[:-20]>[:50]}
+\medbreak
+\setchemfig{cram width=5pt}
+\chemfig{<[:-45]-[:30,,,,line width=5pt]>[:-10]}\qquad
+\chemfig[bond join]{<[:-45]-[:30,,,,line width=5pt]>[:-10]}/
+
+以下の2点に注意してください。
+\begin{itemize}
+	\item \CFkey{bond join}が\CFval{true}のとき、くさび形結合はアウトライン無しで、
+          すなわちほんの少し細く描画されます。
+          （それが重要になるかどうかは\CFval{line width}パラメーターに依存します。）
+	\item \CFkey{bond join}は単結合とくさび形結合の間では、くさび形結合の三角形の底辺の2頂点が
+          単結合の平行な2辺で区切られた空間の外側にあるときには効果がありません。
+          数学的に言うと、\CFval{cram width}の値$d$、単結合の幅$w$、2つの結合の角度$\alpha$
+          について、$d \cos\alpha>w$が成立する場合です。
+\end{itemize}
+
+\exemple{くさび形結合の接合}/
+\setchemfig{cram width=5pt, bond join}
+\chemfig{-[,,,,line width=3pt]>[:30]}\qquad
+\chemfig{-[,,,,line width=3pt]>[:65]}/
+
+\section{デフォルト値}
+各分子の最初で、以下のオプション引数のデフォルト値が初期化されます。
+\begin{itemize}
+	\item 結合角度：0\degres
+	\item 長さの倍率：1
+	\item 出発原子と到着原子の番号：\Verb-<empty>-。
+          つまり\CF{}は結合角に基づいてこれらを決定します。
+	\item \TIKZ{}に渡されるパラメーター：\Verb-<empty>-
+\end{itemize}
+
+分子コードの最初に
+\begin{center}
+	\Verb/[<角度>,<係数>,<n1>,<n2>,<tikzコード>]/
+\end{center}
+と書くことで、デフォルト値を対象分子全体に対して変更することができます。
+
+したがって、分子コードが\verb-[:20,1.5]-で始まっている場合、全ての結合の角度のデフォルトは20\degres{}に、
+原子間距離はデフォルトの1.5倍の長さになります。
+これらのデフォルト値は、次の例の原子``C''に続く結合のように、オプションの引数を与えることでいつでも上書きすることができます。
+
+\exemple{デフォルト値の上書き}|\chemfig{[:20,1.5]A-B-C-[:-80,0.7]D-E-F}|
+
+もし\verb-[1,1.5,2,2,red,thick]-のような奇妙なことを書いた場合、特に指示がない限り、全ての結合の角度は45\degres{}になり、原子間距離はデフォルトの距離の1.5倍になり、結合は各グループの2番目の原子から始まって2番目の原子で終わり、結合は赤い太線になります。
+
+\exemple{デフォルト値}|\chemfig{[1,1.5,2,2,red,thick]ABC-DEF=GHI}|
+
+\section{側鎖}
+\subsection{原理}
+ここまでの分子は全て直鎖状でしたが、そのようなことはめったにありません。
+部分分子を原子に繋げるには、対象の原子のうしろに括弧を書き、その中に\Verb-<コード>-を書きます。
+この\Verb-<コード>-はその原子に繋げたい部分分子の記述です。
+
+次の例では、部分分子``\verb/-[1]W-X/''が原子``B''に繋がっています。
+\exemple{側鎖}|\chemfig{A-B(-[1]W-X)-C}|
+
+同じ原子に複数の部分分子が繋がることもあります。その場合、それぞれの部分分子のコードを括弧で囲んで書きます。
+\exemple{複数の側鎖}|\chemfig{A-B(-[1]W-X)(-[6]Y-[7]Z)-C}|
+
+各部分分子のコードには、その部分分子全体で有効なデフォルト値を定義することができます。
+次の例では部分分子``\verb/[:60]-D-E/''が原子``B''に繋がっており、そのデフォルトの角度は水平から60\degres{}です。
+さらに2つ目の部分分子``\verb/[::-30,1.5]-X-Y/''が原子``B''に繋がっていて、
+デフォルトの結合角度はその直前の結合（この例では``A''と``B''の結合）に対し時計回りに30\degres{}で、
+原子間距離がデフォルト値の1.5倍になっています。
+\exemple{側鎖でのデフォルト値}|\chemfig{A-B([:60]-D-E)([::-30,1.5]-X-Y)-C}|
+
+主分子の最初に``\verb/[:-45]/''と書くとどうなるか見てみておきましょう。
+\exemple{デフォルトの結合角度の影響}|\chemfig{[:-45]A-B([:60]-D-E)([::-30,1.5]-X-Y)-C}|
+
+この例から、結合\verb/B-C/と結合\verb/B-X/の間の角度は30\degres{}のままであることがわかります。
+これは部分分子``\verb/-X-Y/''に相対角度が指定されているからです。
+これとは対照的に、側鎖``\verb/-D-E/''は水平に対して60\degres{}傾いていて、最初に書かれている$-45\degres$の回転になっていません。
+これは予期した動作です。というのも、``\verb/-D-E/''には水平に対する角度が直接指定されているからです。
+分子全体を回転させるためには、全ての角度を相対角度で指定する必要があります。
+
+\subsection{入れ子}
+
+部分分子は入れ子にすることができ、上で見た規則がそのまま適用されます。
+\exemple{入れ子の側鎖}|\chemfig{A-B([1]-X([2]-Z)-Y)(-[7]D)-C}|
+
+\subsection{描き方のヒント}
+次のような酸無水物分子を描きたいとしましょう。
+\chemfig{R-C(=[::+60]O)-[::-60]O-[::-60]C(=[::+60]O)-[::-60]R}
+
+このとき、最も長い鎖を見つけるのが良いでしょう。
+ここでは例えば\verb/R-C-O-C-R/鎖を角度を考慮して描きます。ここでは相対角度だけを使用しています。
+\exemple{酸無水物構造}|\chemfig{R-C-[::-60]O-[::-60]C-[::-60]R}|
+
+この構造に2つの部分分子``\verb/=O/''をそれぞれの炭素原子に付けます。
+\exemple{酸無水物}|\chemfig{R-C(=[::+60]O)-[::-60]O-[::-60]C(=[::+60]O)-[::-60]R}|
+
+相対角度だけを使って書いたので、デフォルトの角度、例えば75\degres{}を指定すると、分子全体を回転することができます。
+\exemple[70]{分子の回転}|\chemfig{[:75]R-C(=[::+60]O)-[::-60]O-[::-60]C(=[::+60]O)-[::-60]R}|
+
+\section{離れた原子を繋げる}
+ここまで、\emph{コード内で隣接している}原子同士を繋げる方法を見てきました。
+しかし、コード内で隣接していない原子同士を繋ぎたい場合もあります。
+このような特殊な結合を「遠い結合」と呼ぶことにしましょう。
+
+次の分子を例にとりましょう。
+\exemple{分岐構造}|\chemfig{A-B(-[1]W-X)(-[7]Y-Z)-C}|
+そして\verb/X/と\verb/C/を繋ぎたいとしましょう。
+このような場合、\CF{}では「フック」を目的の原子の\emph{直後に}置くことができます。
+フックを表わす文字には、フックの形に似ているので``\verb-?-''を使います。
+つまり、\verb/X?/と書くと、原子\verb/X/ はフックを持つことになります。
+そのコード内ではこれ以降、直後に\verb-?-が続く原子は全て\verb/X/に連結されます。
+\exemple{遠い結合}|\chemfig{A-B(-[1]W-X?)(-[7]Y-Z)-C?}|
+
+それ以外の原子も、それに続けて\verb-?-を書けばXに繋げることができます。
+次の例では原子\verb-C-に加えて、\verb-Z-も\verb-X-に繋いでいます。
+\exemple{複数の遠い結合}|\chemfig{A-B(-[1]W-X?)(-[7]Y-Z?)-C?}|
+
+もし遠い結合\verb/X-C/と\verb/X-Z/をそのままにした上で、さらに別の遠い結合\verb/A-W/を描きたい場合はどうすればよいでしょうか。
+この場合は\verb/A/と\verb/X/のそれぞれに2つの\emph{異なる}フックが必要になります。
+幸いなことに、文字\verb/?/はオプション引数を取ることができます。
+\begin{center}
+	\Verb/?[<名前>,<結合>,<tikz>]/
+\end{center}
+フィールドが空の場合は、それぞれの以下のデフォルト値を取ります。
+\begin{itemize}
+	\item \Verb-<名前>-はフックの名前です。全ての英数字（a\dots z、A\dots Z、0\dots 9）を使うことができます\footnote{%
+            これは正確ではありません。実際には\texttt{\string\csname...\string\endcsname}の間に書くことのできる全ての文字を使用することができます。}。
+          名前のデフォルトは\verb-a-です。
+          指定された名前が初めて使われる場合のみ、このフィールドが使用されます。
+
+	\item \Verb-<結合>-は、その原子とその名前のフックを持つ原子をどのように繋ぐかを指定します。
+          それには2つの方法があります。1つ目は、使いたい結合の種類を整数で指定する方法です。
+          例えば単結合なら1、二重結合なら2を指定します。
+          （各結合の番号は\pageref{types.liaisons}ページの表を参照してください。）
+
+          2つ目は、結合を表す文字のうちの1つを\textbf{波括弧内に}書く方法です。
+
+	\item \Verb-<tikz>-は、すでに見た通常の結合の場合と同様に、\TIKZ{}に直接渡されます。
+\end{itemize}
+
+次の例は必要な遠い結合を加えた分子と、その上でさらに結合\verb/A-W/および\verb/X-C/をカスタマイズした例です。
+\exemple{複数の遠い結合}|\chemfig{A?[a]-B(-[1]W?[a]-X?[b])(-[7]Y-Z?[b])-C?[b]}\par\medskip
+	\chemfig{A?[a]-B(-[1]W?[a,2,red]-X?[b])(-[7]Y-
+	Z?[b,1,{line width=2pt}])-C?[b,{>},blue]}|
+
+複数の異なるフックを1つの原子の後に書くこともできます。
+次の未完成の五角形を見てみましょう。
+いま、\verb/A-E/と\verb/A-C/、\verb/E-C/を繋げたいものとします。
+\exemple{不完全な環}|\chemfig{A-[:-72]B-C-[:72]D-[:144]E}|
+
+そのためには、次のように書きます。
+\exemple{複数の遠い結合}|\chemfig{A?[a]-[:-72]B-C?[a]?[b]-[:72]D-[:144]E?[a]?[b]}|
+
+\section{環}
+
+前の例では正多角形を描く方法を見ましたが、角度が多角形の辺の数に依存するのでこの方法は面倒です。
+
+\subsection{構文}
+
+\CF{}では正多角形を簡単に描くことができます。
+そのために、この環の外側にある\Verb/<原子>/に環を付ける、と考えます。
+その構文は次の通りです。
+\begin{center}
+	\Verb/<原子>*<n>(<コード>)/
+\end{center}
+\Verb/<n>/は多角形の辺の数で、\Verb/<コード>/は環を構成する辺と頂点となる結合および原子グループの記述です。
+このコードは\emph{結合で始まらなくてはなりません}。
+なぜなら、原子は環の外にあるからです。
+
+次の例は原子``\verb/A/''に付けられた五員環です。
+\exemple{五員環}|\chemfig{A*5(-B=C-D-E=)}|
+
+また、環以外の場合と同様に、1つまたは複数、あるいは全ての原子グループを空にした環を描くこともできます。
+\exemple{空の原子グループからなる五員環}|\chemfig{*5(-=--=)}|
+
+環は不完全でも構いません。
+\exemple{不完全な五員環}|\chemfig{*5(-B=C-D)}|
+与えられた頂点数に対して結合や原子グループが多すぎる場合、過剰な結合と原子グループは全て無視されます。
+\exemple{切り詰められた五員環}|\chemfig{A*5(-B=C-D-E=F-G=H-I)}|
+
+環の内側に円や弧を描くこともできます。そのためには次の構文を使います。
+\begin{center}
+	\Verb/<原子>**[<角度1>,<角度2>,<tikz>]<n>(<コード>)/
+\end{center}
+ここで、オプション引数の各フィールドが空の場合は、以下のデフォルト値を取ります。
+\begin{itemize}
+	\item \Verb/<角度1>/と\Verb/<角度2>/は弧の開始角度と終了角度です。
+          デフォルトはそれぞれ0\degres{}と360\degres{}で、したがってデフォルトでは円が描かれます。
+	\item \Verb/<tikz>/は弧を描く際に\TIKZ{}に渡されるコードです。
+\end{itemize}
+
+\exemple{環と弧}|\chemfig{**6(------)}\quad
+	\chemfig{**[30,330]5(-----)}\quad
+	\chemfig{**[0,270,dash pattern=on 2pt off 2pt]4(----)}|
+
+\subsection{環の角度の調整}
+\subsubsection{環の先頭での調整}
+
+次の例でわかるように、環の基準原子``\verb/A/''は常に環の南西に置かれます。
+さらに、環は常に反時計回りに描かれ、最後の結合は基準原子に上から垂直に繋がります。
+\exemple{環の角度}|\chemfig{A*4(-B-C-D-)}\qquad\chemfig{A*6(------)}|
+
+この角度が望ましくない場合は、分子の先頭のオプション引数で別の角度を指定することができます。
+次の図は$+30\degres$、$-30\degres$および$+60\degres$回転させた六員環の例です。
+\exemple[55]{環の回転}|\chemfig{[:30]A*6(------)}\qquad
+	\chemfig{[:-30]A*6(------)}\qquad
+	\chemfig{[:60]A*6(------)}|
+
+\subsubsection{結合の後での調整}
+
+分子の記述が環以外で始まっていて1つ以上の結合がすでに描かれている場合は、デフォルトの角度が変更され、
+環の基準原子へ向かう結合が、環の最初と最後の辺がなす角度を二等分するように描かれます。
+
+簡単な場合は次のようになります。
+\exemple{環に繋がる結合}|\chemfig{A-B*5(-C-D-E-F-)}|
+
+この規則は、環の直前の結合の角度によらず有効です。
+\exemple{環に繋がる結合}|\chemfig{A-[:25]B*4(----)}\vskip5pt
+	\chemfig{A=[:-30]*6(=-=-=-)}|
+
+\subsection{環の側鎖}
+環の頂点につく側鎖を描くには、すでに見た構文を使用します。
+\begin{center}
+	\Verb/<原子>(<コード>)/
+\end{center}
+ここで\Verb/<コード>/は部分分子の記述で、\Verb-<原子>-は頂点となる原子です。
+環に特有なこととして、部分分子のデフォルトの角度は0\degres{}ではなく、頂点を出る結合が、
+その頂点に繋がる環の2辺がなす角度を二等分するように計算されます。
+
+\exemple{環の側鎖}|\chemfig{X*6(-=-(-A-B=C)=-=-)}|
+
+部分分子を、他の頂点と同様に、環の最初の頂点に繋げることもできます。
+\exemple{環と側鎖}|\chemfig{*5((-A=B-C)-(-D-E)-(=)-(-F)-(-G=)-)}|
+
+もし頂点から出る結合が、環の2辺がなす角を二等分しないようにしたい場合は、
+オプションのグローバルパラメーターか結合のオプションパラメーターで調整できます。
+\exemple[50]{指定された角度での側鎖}|\chemfig{*5(---([:90]-A-B)--)}\qquad
+	\chemfig{*5(---(-[:90]A-B)--)}\qquad
+	\chemfig{*5(---([::+0]-A-B)--)}|
+
+上の例の3番目の分子では側鎖の結合は相対角度0\degres{}と与えられていて、側鎖の結合は直前の環の結合と同一直線上に描かれていることに注目してください。
+これは、\pageref{angle.relatif}ページの規則により、最後に描かれた結合の角度を基準としているからです。
+
+環同士を結合で繋ぐこともできます。
+\exemple{繋った環}|\chemfig{*6(--(-*5(----(-*4(----))-))----)}|
+
+\subsection{入れ子の環}
+2つの環を「接着」する場合は、ほんの少し異なる構文を使用します。
+まず、もう一方の環が始まる頂点を特定します。
+そしてこの頂点の後に、通常の環の構文を続けるだけです。
+例えば、六員環の2番目の頂点から始まる五員環は次のようになります。
+\exemple{入れ子の環}|\chemfig{A*6(-B*5(----)=-=-=)}|
+
+2つ目の環は1つ目の環に対して、2つの側面が一致するような角度で描かれていることに注意してください。
+さらに、五員環には4つの結合``\verb/----/''しかありません。
+実際5つ目の結合は、すでに描かれている六員環の2番目の辺なので必要ありません。
+
+複数の環を接着することもできます。
+\exemple{複数の入れ子の環}|\chemfig{*5(--*6(-*4(-*5(----)--)----)---)}|
+
+場合によっては小技を使わなければなりません。
+次の例では、2番目の五員環の4つ目の辺が原子``\verb-E-''の中心に達しています。
+\exemple{欠陥のある図}|\chemfig{A-B*5(-C-D*5(-X-Y-Z-)-E-F-)}|
+
+これは正常です。なぜなら（``\verb-D-''に付加されている）2番目の五員環は、
+\CF{}が原子``\verb-E-''について知る\emph{前}に描かれているからです。
+この場合、結合\verb/Z-E/を2つのフックを使用して描く必要があります。
+\exemple{遠い結合と環}|\chemfig{A-B*5(-C-D*5(-X-Y-Z?)-E?-F-)}|
+
+五員環の最後の頂点に\verb-\phantom{E}-を使う方法もあります。
+\exemple{\string\phantom{}を使う方法}/\chemfig{A-B*5(-C-D*5(-X-Y-Z-\phantom{E})-E-F-)}/
+
+\subsection{環と原子グループ}
+環の頂点が原子グループで構成されている場合は注意が必要です。
+\exemple{環と原子グループ}|\chemfig{AB*5(-CDE-F-GH-I-)}|
+
+この環を正多角形にするには、\CF{}によって決定された結合の出発原子と到着原子を上書きする必要があります。
+ここでは\verb/C-F/と\verb/F-G/を繋ぐ必要があり、そのことをこれらの結合のオプション引数で指定します。
+
+\exemple{出発原子と到着原子の指定}|\chemfig{AB*5(-CDE-[,,1]F-[,,,1]GH-I-)}|
+
+\subsection{環の中心}\label{centre_cycle}
+各環にはその中心に、\Verb|centrecycle<n>|という名前の大きさを持たないノードが配置されます。
+ここで\Verb|<n>|は環の番号です。（環は描画された順に番号が付けられます。）
+ブール値\CFkey{show cntcycle}をtrueに設定することで、各環の番号を表示することができます。
+
+ブール値を取る\CFkey{autoreset cntcycle}（デフォルトはtrue）は、各分子の最初に（つまり各\verb|\chemfig|の実行時に）環のカウンターを0にリセットするかどうかを設定します。
+
+\exemple{環の中心}/\chemfig{*5(---(-*3(---))--)}
+\chemmove{\draw[red](cyclecenter1)to[out=20,in=-45](cyclecenter2);}
+\qquad
+\chemfig{*6(-=-=-=)}
+\chemmove{%
+	\node[at=(cyclecenter1)](){.+}
+	node [at=(cyclecenter1),shift=(120:1.75cm)](end){\printatom{R^1}};
+	\draw[-,shorten <=.5cm](cyclecenter1)--(end);
+}/
+
+\section{電子の動きの表現}\label{mecanismes-reactionnels}
+\CF{}バージョン0.3以降では、共鳴効果や反応機構における電子の動きを描くことができます。
+そのためには構文``\Verb-@{<引数>}-''を使用して、電子の動きを表す矢印の出発点と到着点にマークを付けます。
+この記述により\TIKZ{}ノードを配置し、\verb-\chemfig-コマンドの引数の外部からこのノードを参照できるようになります。
+これは、全ての``\falseverb{tikzpicture}''環境に``\texttt{remember picture}''オプションが渡されているからです。
+そのため、コンパイルが2回行われることが前提となります。
+
+具体的には以下の2つのケースが考えられます。
+\begin{itemize}
+	\item 対象の\emph{結合}に大きさのないノードを配置します。
+          そのためには、その結合のオプション引数の最初に``\Verb-@{<名前>,<係数>}-''と書きます。
+          1つ目のオプション引数がある場合は、カンマを付けずに``\Verb-@{<名前>,<係数>}-''の後に続けます。
+          このノードは``\Verb-<名前>-''という名前と、ノードの結合上の位置を指定する0と1の間の値\Verb-<係数>-を取ります。
+          単に``\Verb-@{<名前>}-''と書かれた場合、\Verb-<係数>-はデフォルトの0.5に設定され、ノードは結合の中央に配置されます。
+
+	\item 対象の\emph{原子}上にノードを配置します。
+          そのためには、原子の直前に``\Verb-@{<名前>}-''と書きます。
+          このノードは原子と全く同じ大きさですが、原子が空の場合は大きさを持ちません。
+\end{itemize}
+\falseverb{\chemfig}コマンドが分子を描画し、上記の構文によるノードを配置した後は、
+\TIKZ{}の機能を使ってこれらのノードを相互に繋げることができます。
+そのための指示は、（例えば）ノード``\Verb-<名前1>-''とノード``\Verb-<名前2>-''を繋ぎたい場合、
+次の構文で\verb-\chemmove-コマンドの引数に書きます\footnote{実際には\texttt{\string\chemmove}コマンドは、
+  その引数を``\texttt{remember picture, overlay}''オプションと共に``\falseverb{tikzpicture}''環境に渡します。}。
+\begin{center}
+	\Verb|\chemmove[<オプション>]{\draw[<tikzオプション>](<名前1>)<tikzリンク>(<名前2>);}|
+\end{center}
+
+\verb-\chemmove-のオプション引数\Verb-<オプション>-は、ノード間のリンクが描画される\falseverb{tikzpicture}環境の引数に追加されます。
+\Verb-<tikzオプション>-および\Verb-<tikzリンク>-は、\TIKZ{}パッケージのドキュメントで詳細に説明されています。
+
+\subsection{共鳴効果}
+
+上記の考え方をより具体化するために、二重結合と孤立電子対の共役による共鳴効果の例を取り上げます。
+まず二重結合の電子の非局在化を考えます。
+二重結合の中央に``db''（double bond）という名前のノードを、二重結合の終端に``a1''という名前のノードをそれぞれ配置します。
+
+\verb|\schemestart|、\verb|\schemestop|、\verb|\arrow|および\verb|\+|マクロについては、
+\pageref{schemas}ページから始まる第\ref{schemas}部で説明します。
+
+\exemple{共鳴効果1}/\schemestart
+	\chemfig{@{a1}=_[@{db}::30]-[::-60]\charge{90=\|}{X}}
+	\arrow{<->}
+	\chemfig{\chemabove{\vphantom{X}}{\ominus}-[::30]=_[::-60]
+	\chemabove{X}{\scriptstyle\oplus}}
+\schemestop
+	\chemmove{\draw(db).. controls +(100:5mm) and +(145:5mm).. (a1);}/
+
+上で述べた通り、結合のオプション引数に書かれたノードの後にカンマがないことに注意してください。
+つまり``\verb|=_[@{db}::30]|''と書きます。
+``\verb|=_[@{db},::30]|''と書きたくなるかもしれませんがこのようには書けません。
+
+ノード``db''と``a1''を繋ぐために、次の構文を使用しました。
+\begin{center}
+	\Verb|\chemmove{\draw(db).. controls +(100:5mm) and +(145:5mm).. (a1);}|
+\end{center}
+
+\verb|\chemmove|で使われる矢尻のデフォルトは``CF''です。
+この例では、2つの\falseverb{制御点}を使用しています\footnote{2つのノードを\TIKZ{}で繋ぐ他の方法については、\TIKZ{}のドキュメントを参照してください。}。
+この制御点はいずれも極座標表示で、最初のものが``db''から100\degres{}方向に5~mmの位置に、2番目のものが``a1''から145\degres{}方向に5~mmの位置に配置されています。
+この構文は最初は複雑に見えるかもしれませんが、たいていの場合は単にコピー\&ペーストすれば良いだけなので、警戒する必要はありません。
+次の例で分かるように、変更する必要があるのは制御点の名前と座標だけです。
+この例では孤立電子対（ノード``dnl''）から単結合（ノード``sb''）への矢印が追加されています。
+\exemple{共鳴効果2}/\schemestart
+	\chemfig{@{a1}=_[@{db}::30]-[@{sb}::-60]@{dnl}\charge{90=\|}{X}}
+	\arrow{<->}
+	\chemfig{\chemabove{\vphantom{X}}{\ominus}-[::30]=_[::-60]
+	\chemabove{X}{\scriptstyle\oplus}}
+\schemestop
+\chemmove{
+    \draw(db)..controls +(100:5mm) and +(145:5mm)..(a1);
+    \draw(dnl)..controls +(90:4mm) and +(45:4mm)..(sb);}/
+
+2つ目の矢印のために、``dnl''から90\degres{}方向に4~mm、``sb''から45\degres{}方向に4~mmの2つの\falseverb{制御点}を設定しました。
+しかし、矢印が孤立電子対を表す線に触れてしまっており、まだ満足な結果になっていません。
+これを改善するために、矢印にいくつかのオプションを追加します。
+
+\exemple{共鳴効果3}/\schemestart
+	\chemfig{@{a1}=_[@{db}::30]-[@{sb}::-60]@{dnl}\charge{90=\|}{X}}
+	\arrow{<->}
+	\chemfig{\chemabove{\vphantom{X}}{\ominus}-[::30]=_[::-60]
+	\chemabove{X}{\scriptstyle\oplus}}
+\schemestop
+\chemmove[->]{% 矢尻のスタイルを変更
+    \draw(db).. controls +(100:5mm) and +(145:5mm).. (a1);
+    \draw[shorten <=3pt,shorten >=1pt](dnl) .. controls +(90:4mm)
+          and +(45:4mm) .. (sb);}/
+
+``\verb|shorten <=3pt|''オプションは矢印の尾部を3~pt短く、同様に``\verb|shorten >=1pt|''は矢印の先端を1~pt短くすることを意味します。
+
+\TIKZ{}の全ての力を駆使して、矢印のスタイルを変更できます。
+次の例では、二重結合から出る矢印の矢尻を``\verb|-stealth|''に変更し、矢印を細い破線の赤線で描画しています。
+また、矢印の中央の上部に文字$\pi$を追加しています。
+
+\exemple{共鳴効果4}/\schemestart
+	\chemfig{@{a1}=_[@{db}::30]-[@{sb}::-60]@{dnl}\charge{90=\|}{X}}
+	\arrow{<->}
+	\chemfig{\chemabove{\vphantom{X}}{\ominus}-[::30]=_[::-60]
+	\chemabove{X}{\scriptstyle\oplus}}
+\schemestop
+\chemmove{
+    \draw[-stealth,thin,dash pattern= on 2pt off 2pt,red]
+        (db).. controls +(100:5mm) and +(145:5mm)..
+        node[sloped,above] {$\pi$} (a1);
+    \draw[shorten <=3pt, shorten >= 1pt]
+        (dnl).. controls +(90:4mm) and +(45:4mm).. (sb);}/
+
+次に、矢印の出発点や到着点の位置を指定する方法を見ていきましょう。
+\exemple{出発・到着点のアンカーポイント1}/\chemfig{@{x1}\charge{45=\:}{X}}
+\hspace{2cm}
+\chemfig{@{x2}\charge{90=\|}{X}}
+\chemmove{
+    \draw[shorten >=4pt](x1).. controls +(90:1cm) and +(90:1cm).. (x2);}/
+
+この例では、電子から出る矢印の尾部が、正しい位置から出発していないことに注意してください。
+つまりノードの上辺の中央から出発してしまっています。
+実際、出発角として90~\degres{}を指定しるので、\TIKZ{}はこの矢印をアンカー``x1.90''から出発させています。
+これは、ノード``x1''の中心から水平に対して90\degres{}の角度で発する光線と、矩形ノードの辺との交点に対応しています。
+望む矢印の出発角度を得るためには、その位置を指定する必要があります。
+何度かの試行錯誤の結果、それは``x1.57''と分かりました。
+\exemple{出発・到着点のアンカーポイント2}/\chemfig{@{x1}\charge{45=\:}{X}}
+\hspace{2cm}
+\chemfig{@{x2}\charge{90=\|}{X}}
+\chemmove[shorten <=4pt,shorten >=4pt]{
+    \draw(x1.57).. controls +(60:1cm) and +(120:1cm).. (x2.90);}/
+
+場合によっては、\falseverb{制御点}をデカルト座標で指定する方が簡単かもしれません。
+次の例では、``x1''から右に1~cm、上に0.8~cmの位置に配置された単一の制御点を使用しています。
+\exemple{単一の制御点}/\chemfig{@{x1}\charge{45=\:}{X}}
+\hspace{2cm}
+\chemfig{@{x2}\charge{90=\|}{X}}
+\chemmove[shorten <=4pt,shorten >=4pt]{
+    \draw(x1.57).. controls +(1cm,.8cm).. (x2.90);}/
+
+\verb|\chemmove|コマンドによる描画は全て重ね合わされ、バウンディングボックスには含まれません。
+
+\subsection{反応機構}
+
+全ての``tikzpicture''環境に\verb|remember picture|オプションが渡されるので、
+反応機構を示す矢印を簡単に描くことができます。
+エステル化反応の最初のステップを例に取りましょう。
+\exemple{エステル化反応 ステップ1}/\setchemfig{atom sep=7mm}
+\schemestart
+	\chemfig{R-@{dnl}\charge{90=\|,-90=\|}{O}-H}
+	\+
+	\chemfig{R-@{atoc}C([6]-OH)=[@{db}]O}
+	\arrow(.mid east--){<->[\chemfig{@{atoh}\chemabove{H}{\scriptstyle\oplus}}]}
+\schemestop
+\chemmove[shorten <=2pt]{
+	\draw(dnl)..controls +(90:1cm)and+(north:1cm)..(atoc);
+	\draw[shorten >=6pt](db)..controls +(north:5mm)and+(100:1cm)..(atoh);}/
+
+\Verb|\chemabove{<コード>}{<物質>}|コマンドは、\Verb|<コード>|の\falseverb{バウンディングボックス}の寸法を変更しません。
+そのため、電荷を表す記号%
+{%
+  \newsavebox{\mybs}\savebox{\mybs}{$\oplus$}%
+  \newsavebox{\mybz}\savebox{\mybz}{（}%
+  {\ltjsetparameter{yalbaselineshift=\dimexpr.5\ht\mybs-.5\ht\mybz\relax}（$\oplus$あるいは$\ominus$）}}
+への矢印を描くのにいくらか苦労することがあります。
+上の例での解決法は``atoh''から110\degres{}方向に1~cmの位置に制御点を作成し、矢印を6~pt短くすることです。
+次のエステル化反応の第2ステップを描いた例では、矢印がもっと複雑な形を取り得ることがわかります。
+コード自体は複雑になっていないことに注意してください。
+
+\exemple{エステル化反応 ステップ2}/\setchemfig{atom sep=7mm}
+\chemfig{R-O-C(-[2]R)(-[6]OH)-@{dnl}\charge{90=\|,-90=\|}{O}H}\hspace{1cm}
+\chemfig{@{atoh}\chemabove{H}{\scriptstyle\oplus}}
+\chemmove{
+    \draw[shorten <=2pt, shorten >=7pt]
+        (dnl).. controls +(south:1cm) and +(north:1.5cm).. (atoh);}/
+
+残りは読者の課題としておきます。
+
+\section{分子の下に分子名を書く}\label{chemname}
+便利な機能として\CF{}では、次のコマンドで分子の下に名前を書くことができます。
+\begin{center}
+	\Verb/\chemname[<長さ>]{\chemfig{<分子コード>}}{<名前>}/
+\end{center}
+
+\Verb-<長さ>-は分子の\falseverb{ベースライン}と\Verb-<名前>-の文字の上部との間隔で、デフォルトは1.5~exです。
+\Verb-<名前>-は分子に対して中央揃えとなります。複数の段落を含めることはできません。
+このように書いてみると分かるように
+\chemname{\chemfig{H-O-H}}{\scriptsize\bfseries The water molecule（水分子）：$\mathrm{\mathbf{H_2O}}$}、分子の下に表示される\Verb-<名前>-は、バウンディングボックスの垂直サイズのみが反映されます。
+\Verb-<名前>-の水平サイズは常にゼロです。
+
+以下は反応に出てくる各分子の下に名前を表示する例です。
+\exemple*{分子名の表示}/\schemestart
+	\chemname{\chemfig{R-C(-[:-30]OH)=[:30]O}}{カルボン酸}
+	\+
+	\chemname{\chemfig{R'OH}}{アルコール}
+	\arrow(.mid east--.mid west)
+	\chemname{\chemfig{R-C(-[:-30]OR')=[:30]O}}{エステル}
+	\+
+	\chemname{\chemfig{H_2O}}{水}
+\schemestop
+\chemnameinit{}/
+
+このコマンドにはいくつかの制約があります。上の例で左辺の酸とアルコールを入れ替えてみましょう。
+\exemple*{名前の整列1}/\schemestart
+	\chemname{\chemfig{R'OH}}{アルコール}
+	\+
+	\chemname{\chemfig{R-C(-[:-30]OH)=[:30]O}}{カルボン酸}
+	\arrow(.mid east--.mid west)
+	\chemname{\chemfig{R-C(-[:-30]OR')=[:30]O}}{エステル}
+	\+
+	\chemname{\chemfig{H_2O}}{水}
+\schemestop
+\chemnameinit{}/
+
+コマンド\falseverb{\chemname}は\Verb-<name>-を描画するために、各分子のベースライン（このマニュアルの例では薄い灰色）
+の下に{\ltjsetparameter{autoxspacing=false}1.5ex${}+{}$\emph{これまでの分子の深さの最大値}}\footnote{\TeX{}用語では、深さはベースラインの下に垂直に拡張される寸法です。}の空きを挿入します。
+\label{chemnameinit}\falseverb{\chemnameinit}\Verb-{<要素>}-コマンドはこの最大深さを\Verb-<要素>-で初期化します。
+したがって、望ましい出力を得るには、次のようにしなければなりません。
+\begin{itemize}
+	\item 反応が最も深い分子で始まらない場合は、反応内で\verb-\chemname-コマンドを使う前に\Verb-\chemnameinit{<最も深い分子>}-を書きます。
+	\item 全ての分子の名前を書いた後に\verb-\chemnameinit{}-でこの深さを初期化して、
+          この反応での最大深さが、以降の別の反応に影響を与えないようにします。
+\end{itemize}
+
+最大深さは、\CFkv{gchemname}{true}の場合はグローバルであり、これはデフォルトの動作です。それ以外の場合はローカルになります。
+
+したがって、正しいコードでは反応の前後に\falseverb{\chemnameinit}を使用します。
+\exemple*{名前の整列2}/\chemnameinit{\chemfig{R-C(-[:-30]OH)=[:30]O}}
+\schemestart
+	\chemname{\chemfig{R'OH}}{アルコール}
+	\+
+	\chemname{\chemfig{R-C(-[:-30]OH)=[:30]O}}{カルボン酸}
+	\arrow(.mid east--.mid west)
+	\chemname{\chemfig{R-C(-[:-30]OR')=[:30]O}}{エステル}
+	\+
+	\chemname{\chemfig{H_2O}}{水}
+\schemestop
+\chemnameinit{}/
+
+最後に、名前を複数行にわたって書きたい場合は、\Verb-<名前>-内で\verb-\\-コマンドを使用して改行します%
+\footnote{\texttt{\textbackslash par}コマンドは使えません。使用した場合はコンパイルエラーとなります。}。
+\exemple*{2行に渡る名前}/\schemestart
+	\chemname{\chemfig{R-C(-[:-30]OH)=[:30]O}}{Carboxilic\\Acid}
+	\+
+	\chemname{\chemfig{R'OH}}{Alcohol}
+	\arrow(.mid east--.mid west)
+	\chemname{\chemfig{R-C(-[:-30]OR')=[:30]O}}{Ester}
+	\+
+	\chemname{\chemfig{H_2O}}{Water}
+\schemestop
+\chemnameinit{}/
+
+\Verb|\chemname*{<名前>}|マクロは、それ以前の名前を考慮しません。
+
+\part{高度な使用方法}\label{utilisation.avancee}
+
+\section{原子の分割}\label{decoupage.atomes}
+
+すでに述べた\falseverb{原子分割機構}は、次に出現する大文字または\insertxkanjiskip{\ttfamily \boxedfalseverb{-} \boxedfalseverb{=} \boxedfalseverb{~} \boxedfalseverb{(} \boxedfalseverb{!} \boxedfalseverb{*} \boxedfalseverb{<} \boxedfalseverb{>} \boxedfalseverb{@}}\insertxkanjiskip{}のいずれかの直前までを1つの原子として扱います。
+
+特定のケースではこの自動分割が不正確な原子を生成し、不完全な図が生成されることがあります。
+次の分子を例に見てみましょう。
+\CF{}が間違って分岐を作らないようにするために``\texttt(''が波括弧内に書かれていることに注意してください。
+\exemple*{アルケン}/\chemfig{CH_3CH_2-[:-60,,3]C(-[:-120]H_3C)=C(-[:-60]H)-[:60]C{(}CH_3{)}_3}/
+
+この例では右上の炭素原子への結合が短すぎることがわかります。
+これは、\CF{}のルールを適用して右上のグループを原子に分割すると、それぞれ
+``\texttt{\detokenize{C{(}}}''、``\texttt{\detokenize{C}}''、``\texttt{\detokenize{H_3{)}_3}}''
+となるためです。
+つまり最初の原子が括弧を含んでおり、その数式モードでの深さが大きすぎるのが原因です。
+バウンディングボックスを描くとこれを確認できます。
+
+\begin{center}
+\fboxsep=0pt
+\renewcommand*\printatom[1]{\fbox{\ensuremath{\mathrm{#1}}}}%
+\chemfig{CH_3CH_2-[:-60,,3]C(-[:-120]H_3C)=C(-[:-60]H)-[:60]C{(}CH_3{)}_3}%
+\end{center}
+
+``|''を使用すると、\CF{}にこの位置での原子の分割を強制できます。
+したがって、\texttt{C\textcolor{red}{|}\detokenize{{(CH_3)_3}}}と書くことで、\CF{}が``\texttt{\detokenize{C}}''と``\texttt{\detokenize{{(CH_3)_3}}}''の間で原子を分割することを保証できます。
+これで短すぎる結合の問題が解決されます。
+
+\exemple*{アルケン}/\chemfig{CH_3CH_2-[:-60,,3]C(-[:-120]H_3C)=C(-[:-60]H)-[:60]C|{(CH_3)_3}}/
+
+\section{原子の表示}\label{perso.affichage}
+
+分子が原子に分割されると、\CF{}は各原子を表示するために内部的に\falseverb{\printatom}マクロを呼び出します。
+このマクロは唯一の引数として、表示すべき原子のコード（例：``\verb-H_3-''）を取ります。
+デフォルトではこのマクロは\falseverb{数式モード}に入り、その引数を数式フォントのローマン体``rm''で表示します。
+これは次のように定義されています。
+\begin{itemize}
+	\item \LaTeX{}でコンパイルする場合：\quad \verb|\newcommand*\printatom[1]{\ensuremath{\mathrm{#1}}}|
+	\item $\varepsilon$\TeX{}またはCon\TeX{}tでコンパイルする場合：\quad \verb|\def\printatom#1{\ifmmode\rm#1\else$\rm#1$\fi}|
+\end{itemize}
+
+このマクロを変更して、原子の表示方法をカスタマイズすることができます。
+以下の例では\falseverb{\printatom}を再定義して、各原子を矩形で囲んでいます。
+
+\exemple{\string\printatomの再定義}/\fboxsep=1pt
+\renewcommand*\printatom[1]{\fbox{\ensuremath{\mathrm{#1}}}}
+\chemfig{H_3C-C(=[:30]O)(-[:-30]OH)}/
+
+次の例では、数式フォントのサンセリフ体``sf''を使用するように再定義しています。
+\exemple{原子を``sf''フォントファミリーで表示}/\renewcommand*\printatom[1]{\ensuremath{\mathsf{#1}}}
+\chemfig{H_3C-C(=[:30]O)(-[:-30]OH)}/
+
+\section{\TIKZ{}に渡される引数}\label{arguments.optionnels}
+\chevrons{キーワード} \CFkey{chemfig style}には、その分子が描画される\falseverb{tikzpicture}環境に渡される\TIKZ{}命令を記述します。
+一方\chevrons{キーワード} \CFkey{atom style} には、各ノードが描画されるときに実行される\TIKZ{}命令を記述します。
+これらの命令は、\texttt{every node/.style\{<引数>\}}の末尾に追加されます。
+つまり、``{\ttfamily anchor=base,inner sep=0pt,outer sep=0pt,minimum size=0pt}''の後に追加されます。
+
+最初のオプション引数を使用することで、例えば線のグローバルな色や太さを設定できます。
+\exemple{スタイルの設定}/\chemfig{A-B-[2]C}\par\medskip
+\setchemfig{chemfig style={line width=1.5pt}}\chemfig{A-B-[2]C}\par\medskip
+\setchemfig{chemfig style=red}\chemfig{A-B-[2]C}/
+
+\CFkey{atom style}を使用することで、\TIKZ{}によって描画されるノードの色を変更したり、描画の際の角度や拡大・縮小率を変更することができます。
+\exemple{スタイルの設定}/\chemfig{A-B-[2]C}\par\medskip
+\setchemfig{atom style=red}\chemfig{A-B-[2]C}\par\medskip
+\setchemfig{atom style={rotate=20}}\chemfig{A-B-[2]C}\par\medskip
+\setchemfig{atom style={scale=0.5}}\chemfig{A-B-[2]C}/
+
+\section{二重結合をずらす}
+二重結合は2つの線分で構成されており、これらの線分は、単結合の場合に描かれる線を仮想的な線として、その両側に描かれます。
+一方の線分がこの仮想線上になるように二重結合をずらすことができます。
+もう一方の線分は、結合の上または下に移動します。
+実際には、結合は描画の方向に沿って進むため、仮想線の「左」または「右」と言う方が正確です。
+
+結合を左にずらすには``\verb-=^-''と、右にずらすには``\verb-=_-''と書きます。
+\exemple{二重結合をずらす}/\chemfig{A-=-B}\par
+\chemfig{A-=^-B}\par
+\chemfig{A-=_-B}/
+
+環式化合物では、二重結合は自動的に左にずらされます。
+しかし、``\verb-=_-''を指定することで右にずらすこともできます。
+\exemple{環式化合物の二重結合をずらす}/\chemfig{*6(-=-=-=)}\qquad
+\chemfig{*6(-=_-=_-=_)}/
+
+この機能は、二重結合を持つ炭素鎖からなる分子の骨格構造式を描く場合に特に便利です。
+通常の二重結合では経路が途切れてしまいますが、この方法を使えば連続したジグザグで描くことができます。
+\exemple{ずらされた二重結合と骨格構造式}/\chemfig{-[:30]=[:-30]-[:30]=[:-30]-[:30]}\par
+\chemfig{-[:30]=^[:-30]-[:30]=^[:-30]-[:30]}\par
+\chemfig{-[:30]=_[:-30]-[:30]=_[:-30]-[:30]}/
+
+\section{非局在化した二重結合}
+
+1本の線が実線で、もう1本が破線であるような二重結合を描きたい場合があります。
+この機能は\CF{}自体には実装されていません。
+というのは、\TIKZ{}の``decorations.markings''ライブラリーを使うことで実現できるからです。
+\exemple*{非局在化した二重結合}|\catcode`\_=11
+\tikzset{
+	ddbond/.style args={#1}{
+		draw=none,
+		decoration={%
+			markings,
+			mark=at position 0 with {
+				\coordinate (CF@startdeloc) at (0,\dimexpr#1\CF_doublesep/2)
+				coordinate (CF@startaxis) at (0,\dimexpr-#1\CF_doublesep/2);
+				},
+			mark=at position 1 with {
+				\coordinate (CF@enddeloc) at (0,\dimexpr#1\CF_doublesep/2)
+				coordinate (CF@endaxis) at (0,\dimexpr-#1\CF_doublesep/2);
+				\draw[dash pattern=on 2pt off 1.5pt] (CF@startdeloc)--(CF@enddeloc);
+				\draw (CF@startaxis)--(CF@endaxis);
+				}
+			},
+		postaction={decorate}
+	}
+}
+\catcode`\_=8
+\chemfig{A-[,,,,ddbond={+}]B-[,,,,ddbond={-}]C}|
+
+\section{部分分子の保存}\label{definesubmol}
+\CF{}では部分分子の\Verb-<コード>-を、分子コード内で再利用するために別名をつけて保存することができます。
+これは、\Verb-<コード>-が何度も現れる場合に特に便利です。
+
+そのためには次のコマンドを使います。
+\begin{center}
+	\Verb|\definesubmol{<名前>}{<コード>}|
+\end{center}
+これにより、分子コード中で``\verb/!{名前}/''という別名を使って、この\Verb/<コード>/を呼び出すことができます。
+この\Verb-<名前>-には、
+\begin{itemize}
+	\item \texttt{\string\csname}と\texttt{\string\endcsname}の間に書ける文字からなる文字列
+        \item コントロールシーケンス
+\end{itemize}
+を使用することができます。
+
+どのような場合においても、別名がすでに定義されている場合は、\falseverb{\definesubmol}でそれを別の定義で上書きしてはいけません。
+その場合は、古い別名が新しい別名で上書きされるという警告が表示されます。
+以前に作成された別名の定義を上書きするには、次のコマンドを使用してください。\label{redefinesubmol}
+
+\begin{center}
+	\Verb|\redefinesubmol{<名前>}{<コード>}|
+\end{center}
+
+次の例はペンタン分子を描くコードです。
+別名``\verb/xy/''が、コード\verb/CH_2/として定義されています。
+\exemple{ペンタン}|\definesubmol{xy}{CH_2}
+	\chemfig{H_3C-!{xy}-!{xy}-!{xy}-CH_3}|
+
+``\verb/!{xy}/''は置き換えようとしているコードと同じくらいの長さなので、この例はあまり面白くありません。
+
+しかしこの機能によって、分子コードを短くすることができ、それによって可読性が向上する場合もあります。
+次の例ではブタンの完全な構造図を描いています。
+ここでは部分分子$\mathrm{CH_2}$の別名を、コントロールシーケンス``\verb/\xx/''として定義しています。
+相対角度のみを使用すれば、主分子のデフォルトの結合角を指定するオプションのグローバルパラメーターを使うことで、分子全体を任意の角度に回転させることができます。
+ここではその角度を15\degres{}としています。
+\exemple{ブタン}|\definesubmol\xx{C(-[::+90]H)(-[::-90]H)}
+\chemfig{[:15]H-!\xx-!\xx-!\xx-!\xx-H}|
+
+\falseverb{\definesubmol}コマンドはオプション引数を1つ取ります。
+その構文は次の通りです。
+\begin{center}
+	\Verb/\definesubmol{<名前>}[<コード1>]{コード2}/
+\end{center}
+
+このオプション引数が指定された場合、別名への結合が右から到着する場合、つまり結合が到着する角度が$-90$\degres{}より大きく90\degres{}未満である場合は、
+別名``\Verb-!<名前>-''には\Verb'<コード1>'が使われます。
+それ以外の場合、つまり結合が左からあるいは垂直に到着する場合は、この別名は\Verb'<コード2>'に置き換えられます。
+
+次の例ではメチル基の別名をコントロールシーケンス\verb-\Me-として定義し、右から結合が到達する場合には``\verb-H_3C-''に、左から到達する場合には``\verb-CH_3-''に置き換えられるようにしています。
+この例からわかるように、この別名を使えばもはや結合がどの角度から入るかを気にしなくてよくなります。
+\exemple{別名の二重定義}/\definesubmol\Me[H_3C]{CH_3}
+\chemfig{*6((-!\Me)=(-!\Me)-(-!\Me)=(-!\Me)-(-!\Me)=(-!\Me)-)}/
+
+\label{definesubmolarg}\Verb|<名前>|が``\verb|!|''によって呼び出されるとき、保存された部分分子は引数を取りません。
+1つ以上の引数を取る部分分子を定義するには、\Verb|<引数の数>|を\Verb|<名前>|の直後に置きます。
+\verb|\definesubmol|の完全な構文は次のとおりです。
+\begin{center}
+	\Verb/\definesubmol{<名前>}<引数の数>[<コード1>]{<コード2>}/
+\end{center}
+
+この引数は、\Verb|<コード>|内で通常の``\Verb|#<n>|''の形式で記述する必要があります。
+ここで\Verb|<n>|は引数の番号です。
+
+\exemple{引数付きの\texttt{\string\definesubmol}}/\definesubmol\X1{-[,-0.2,,,draw=none]{\scriptstyle#1}}
+\chemfig{*6((!\X A)-(!\X B)-(!\X C)-(!\X D)-(!\X E)-(!\X F)-)}
+
+\definesubmol{foo}3[#3|\textcolor{#1}{#2}]{\textcolor{#1}{#2}|#3}
+\chemfig{A(-[:135]!{foo}{red}XY)-B(-[:45]!{foo}{green}{W}{zoo})}/
+
+\Verb|<引数の数>|が不正である（負または9より大きい数が指定された）場合、エラーメッセージが表示され、
+\CF{}は部分分子が引数を取らないものと見なします。
+
+文字``\verb|#|''に1から\Verb|<引数の数>|の数が続く、すなわち引数を指す場合を除き、分子コード内で``\verb|#|''を使用することができます。
+
+\exemple{\#{}の使用}/\definesubmol\X2{#1-#2-#3-#(3pt,3pt)#4}
+\chemfig{A-!\X{M}{N}-B}/
+
+この例では\verb|#1|と\verb|#2|のみが部分分子\verb|\X|の引数として扱われます。
+それ以外の``\verb|#|''は分子内でそのまま表示される（この例では\verb|#3|と\verb|#4|）か、原子と結合の距離の微調整を指示するための文字として扱われます。
+
+\section{原子の配置}
+\subsection{原子グループ}\label{placementatomes}
+原子グループ内では、各原子は次のルールによって順に配置されます。
+\begin{itemize}
+	\item 最初に配置される原子（「基準原子」と呼びます）は、結合が到達する原子です。分子の先頭の場合は、左側の原子が基準原子です。
+	\item 次に、基準原子の右側にある原子が、左から右に配置されます。
+	\item 最後に、基準原子の左側にある原子が、右から左に配置されます。
+\end{itemize}
+
+このように形成された原子グループでは、各原子のベースラインは\emph{同一の水平線上}にあり、言い換えると、全ての原子が同じ水平線上に整列しています。
+
+コード``\verb|\chemfig{A[:-60,,,3]BCDEF}|''の場合、2つ目の原子グループの基準原子は``D''です。
+これは結合が3つ目の原子に到着するように指示されているからです。
+下図は、このグループの各原子に割り当てられた連番を示しています。
+
+\begin{center}
+	\def\0#1#2{%
+		\vtop{%
+			\def\tempprintatom##1{\ensuremath{\mathrm{##1}}}%
+			\setbox0\hbox{\tempprintatom{#1}}%
+			\def\tempvrule{\vrule height.33ex width.4pt}%
+			\offinterlineskip\copy0 \kern2pt
+			\hbox to\wd0{\kern.5pt \tempvrule\hrulefill\tempvrule\kern.5pt}\kern2pt
+			\hbox to\wd0{\hss$\scriptstyle#2$\hss}}}
+	\chemfig{A-[:-60,,,3]\0{B}{5}|\0{C}{4}|\0{D}{1}|\0{E}{2}|\0{F}{3}}
+\end{center}
+
+\subsection{垂直方向の整列}\label{baseline}\label{alignement.vertical}
+現在の段落のベースラインに対して分子の垂直方向の位置を微調整するために\CFkey{baseline}を使用します。
+
+これはデフォルトでは\CFval{0pt}に設定されており、この場合、最初に遭遇する原子（空かどうかによらず）が現在の段落のベースラインに配置されます。
+このマニュアルではベースラインは灰色の線で示されています。
+どの原子を最初に描くかによって他の原子の配置が決まり、しばしば分子全体の配置にも影響を与えます。
+
+\exemple{最初の原子}/\chemfig{H-[7]C(-[5]H)=C(-[1]H)-[7]H}\qquad
+\chemfig{C(-[3]H)(-[5]H)=C(-[1]H)-[7]H}/
+
+構文\CFkv{baseline}{長さ}によって距離を指定することで、分子を垂直方向に移動させることができます。
+
+\exemple{垂直方向の移動}/\chemfig{A(-[:-60]-[:30]C)-[:45]B}\qquad
+\chemfig[baseline=5pt]{A(-[:-60]-[:30]C)-[:45]B}\qquad
+\chemfig[baseline=-5pt]{A(-[:-60]-[:30]C)-[:45]B}/
+
+構文\CFkv{baseline}{\textup{\,(名前)\,}}（名前は括弧内に書く必要があります）を使用すると、
+ノード\chevrons{名前}で分子のベースラインを指定できます。
+原子の名前には、\CF{}によって自動的に割り当てられた（\Verb|n<a>-<b>|形式の）名前、またはユーザーが構文\Verb|@{<名前>}|で付けた名前を使うことができます（\pageref{mecanismes-reactionnels}ページ参照）。
+
+\exemple*{原子の配置}/デフォルトの配置：      \chemfig{A(-[:-60]-[:30]C)-[:45]B}\medbreak
+Ｂに合わせる：          \chemfig[baseline=(b.base)]{A(-[:-60]-[:30]C)-[:45]@{b}B}\medbreak
+空の原子に合わせる：    \chemfig[baseline=(vide)]{A(-[:-60]@{vide}-[:30]C)-[:45]B}\medbreak
+Ｃに合わせる：          \chemfig[baseline=(c.base)]{A(-[:-60]-[:30]@{c}C)-[:45]B}/
+
+\TIKZ{}ノード名を使うこともできます。
+例えば、現在のベースラインに対して複数の分子を垂直に中央揃えしたい場合は、\CFkey{baseline}に\CFval{(current bounding box.center)}を設定します。
+\exemple*{中央揃え}/1) \chemfig{A-[:-45]B} と 2) \chemfig{B-[:45]C}\bigbreak
+
+\setchemfig{baseline=(current bounding box.center)}% 以降の分子を垂直方向にセンタリング
+1) \chemfig{A-[:-45]B} と 2) \chemfig{B-[:45]C}
+\setchemfig{baseline=0pt}% デフォルト値に戻す/
+
+\subsection{原子間の結合}\label{liaisonentreatomes}
+ある原子から始まる結合は、延長するとその原子のバウンディングボックスの中心を通過します。
+同様に、結合の終端に配置された原子のバウンディングボックスの中心は、結合の延長線上にあります。
+つまり、結合で結ばれている2つの原子のバウンディングボックスの中心はいずれも、この2つの原子間の結合の延長線上にあります。
+\begin{center}
+\fboxsep=.25pt
+\renewcommand\printatom[1]{\fbox{\ensuremath{\mathrm{#1}}}}
+\setchemfig{chemfig style={line width=1pt}}
+\Large
+\chemfig{A@ABC-[:65,,2,3]DE@BFG}
+\chemmove{%
+	\draw[red,fill=red]  (A.center)circle(.2ex);
+	\draw[blue,fill=blue](B.center)circle(.2ex);
+	\draw[gray,-,dashed,shorten <=-1.5em, shorten >=-1.5em](A.center)--(B.center);
+}
+\end{center}
+
+この方法で位置決めをすると原子グループの整列に乱れが生じる場合があり、特に結合が水平の場合に非常に目立つことがあります。
+原子が同じ垂直方向の長さを持っている場合は全てがうまく機能しますが、
+出発原子が高い（上付き文字がある）または深い（下付き文字がある）場合に、到着原子がこれと異なる垂直方向の長さを持っていると、整列が崩れます。
+\exemple*{水平整列}/\Huge\setchemfig{atom sep=2em}
+\chemfig{A^1-B-C-D}\qquad
+\chemfig{E_1-F-G-H}/
+
+この例において、最後の2つの原子が垂直方向にずれているにもかかわらず、2番目の原子が正しく整列しているのは驚くべきことです。
+これは、\CF{}が各到着原子の直前に出発原子の\falseverb{\vphantom}を追加するためです。
+ただし、この\falseverb{\vphantom}は到着原子の内容には含まれません。
+したがってこの\falseverb{\vphantom}は、以降の原子に影響を与えることを意図していません。
+この現象を明らかにするために原子のバウンディングボックスを可視化すると、原子``\verb-B-''と``\verb-F-''は、前の原子の高さを考慮したバウンディングボックスを持っていることがわかります。
+\exemple*{水平配置とバウンディングボックス}/\Huge\setchemfig{atom sep=2em}
+\fboxsep=0pt
+\renewcommand\printatom[1]{\fbox{\ensuremath{\mathrm#1}}}
+\chemfig{A^1-B-C-D}\qquad
+\chemfig{E_1-F-G-H}/
+
+どのような自動的な解決策も満足のいくものではないので、この問題は手動で回避せねばなりません。
+具体的には、出発原子を\verb|\vphantom{X}|と等しい「支柱（strut）」とします。
+したがって、出発原子は「通常の」高さを持ち、次の原子グループに反映されません。
+つぎの例では簡潔さのために部分分子を使用しています。
+\exemple*{垂直配置の回避}/\Huge\setchemfig{atom sep=2em}
+\definesubmol\I{\vphantom{X}}
+\chemfig{A^1|!\I-B-C-D}\qquad
+\chemfig{E_1|!\I-F-G-H}/
+この方法の欠点は、出発原子の幅が0であるため、最初の結合が長すぎることです。
+
+もし、それにより分子にもたらされる帰結を理解していると\emph{本当に確信}していて、本当にそれが適している場合には、
+\verb|\printatom|を再定義して、原子のバウンディングボックスが一定の垂直高さ、例えば``$\mathrm{X^1_1}$''の高さを持つように強制することができます。
+\exemple*{\string\printatom{}の再定義}/\Huge\setchemfig{atom sep=2em}
+\let\oldprintatom\printatom
+\renewcommand\printatom[1]{%
+	\begingroup
+		\setbox0\hbox{\oldprintatom{X^1_1}}%
+		\edef\tmp{\ht0=\the\ht0\relax\dp0=\the\dp0\box0 }%
+		\setbox0\hbox{\oldprintatom{#1}}%
+		\ifnum1\ifdim\ht0=0pt0\fi\ifdim\dp0=0pt0\fi\ifdim\wd0=0pt0\fi<1000
+			\tmp
+		\fi
+	\endgroup
+}
+\chemfig{A^1-B-C-D}\qquad
+\chemfig{E_1-F-G-H}/
+
+\subsection{\texttt{\textbackslash chemskipalign}マクロ}\label{chemskipalign}
+任意の原子グループに対して、\CF{}の整列調整機構を一時的に無効にし、\falseverb{\vphantom}を「中和」することができます。
+そのためには、対象の原子グループ内に\falseverb{\chemskipalign}コマンドを書くだけです。
+すると次の原子グループから整列が再開され、\falseverb{\chemskipalign}を含む原子グループが存在しなかったかのようになります。
+次の例で、この命令の効果を確認できます。
+この命令により、最初の原子を含むボックスの基準点は、左から来る結合の高さに位置しています。
+2行目では原子を含むバウンディングボックスが描かれています。
+
+\exemple[60]{整列機構の無効化}/\large
+\chemfig{A-.-B}\quad
+\chemfig{A-\chemskipalign.-B}\par\bigskip
+\fboxsep=0pt
+\renewcommand\printatom[1]{\fbox{\ensuremath{\mathrm{#1}}}}
+\chemfig{A-.-B}\quad
+\chemfig{A-\chemskipalign.-B}/
+
+このコマンドは注意して使用しないと、次の原子グループの整列を崩してしまいます。
+\falseverb{\chemskipalign}を含む原子グループが\emph{単一の原子}で構成され、
+その高さと深さが前後の原子より\emph{小さい}ときは、
+前後の原子の高さと深さが同じであれば問題はありません。
+次の例では、原子グループが2つの原子、ここでは``\verb-\chemskipalign.-''と``\verb-B-''を含んでいるときに、
+整列がうまくいかない場合を示しています。
+\exemple{\string\chemskipalign{}の結果}/\large
+\fboxsep=0pt
+\renewcommand\printatom[1]{\fbox{\ensuremath{\mathrm{#1}}}}
+\chemfig{A-\chemskipalign.B-C}/
+
+この機能が便利なときもあります。次の分子を描画したいとしましょう。
+\begin{center}
+	\catcode`;12
+	\def\emptydisk{\chemskipalign\tikz\draw(0,0)circle(2pt);}%
+	\def\fulldisk{\chemskipalign\tikz\fill(0,0)circle(2pt);}%
+	\chemfig{A-#(,0pt)\emptydisk-#(0pt,0pt)\fulldisk-#(0pt)B}%
+\end{center}
+
+中空の円と塗り潰された円を\TIKZ{}で定義します。
+これらの円を正しい高さ、すなわち到達する結合の高さに配置するために\falseverb{\chemskipalign}コマンドを使用します。
+2行目で円と結合が「くっついて」いますが、これには\pageref{modif.retrait}ページで見た``\verb-#-''の機能、すなわち
+結合と原子の間の距離を変更する機能を使っています。
+\begingroup\catcode`;12 \catcode`#12
+\exemple{\string\chemskipalign{}コマンドと#の使用}/\def\emptydisk{\chemskipalign\tikz\draw(0,0)circle(2pt);}
+\def\fulldisk{\chemskipalign\tikz\fill(0,0)circle(2pt);}
+\chemfig{A-\emptydisk-\fulldisk-B}\par
+\chemfig{A-#(,0pt)\emptydisk-#(0pt,0pt)\fulldisk-#(0pt)B}
+/\endgroup
+
+\section{\texttt{\textbackslash charge}マクロ}\label{charge}
+\subsection{概要}
+
+\verb|\charge|マクロは必須の引数を2つ取り、\chevrons{原子}の周りに（\chevrons{電荷}と呼ばれる）要素を配置します。
+
+完全な構文は次の通りです。
+\begin{center}
+	\Verb|\charge{[<一般的なパラメーター>]<位置>[<tikzコード>]=<電荷>}{<原子>}|
+\end{center}
+ここで、
+\begin{itemize}
+ 	\item \chevrons{原子}は通常1文字または2文字ですが、空でも構いません。
+	\item \chevrons{電荷}は原子の周りに配置したい任意の要素です。この内容に関する制約は少なく、（必要なら数式モードでの）テキストや、
+          \TIKZ{}コード、あるいは\verb|\chemfig|で描かれた分子でも構いません。
+	\item \chevrons{一般的なパラメーター}（非必須）は、キーワードと値のリストであり、このマクロの実行時に満たすべきオプションを指定します。
+          具体的なキーワードと値は下に示します。
+
+	\item \chevrons{位置}は``\chevrons{角度}\verb-:-\chevrons{距離}''ですが、\chevrons{角度}のみを指定することも可能です。
+          その場合\chevrons{距離}は\verb|0pt|となります。
+
+	\item \chevrons{tikzコード}（非必須）は、\chevrons{電荷}を配置する\TIKZ{}の\verb|\node|マクロに与えられるオプションを設定します。
+\end{itemize}
+
+\subsection{パラメーター}
+
+\chevrons{一般的なパラメーター}で利用可能な\chevrons{キーワード}${}={}$\chevrons{値}は次表の通りです。
+
+\begingroup
+\CFjapsettablearraystretch
+\begin{longtable}{rl>{\baselineskip=\CFjaptabularbaselineskip}p{8.5cm}}\hline
+	\chevrons{キーワード} & デフォルト\chevrons{値} & 説明\\\hline\endhead
+	\Chargeparam{debug} & 真偽値を取り、\CFval{true}のとき\chevrons{原子}（緑）、\chevrons{電荷の配置位置}（青）、および\chevrons{電荷}（赤）の各ノードのアウトラインを描画します。\\
+	\Chargeparam{macro atom} & 引数として\chevrons{原子}を受け取るマクロ\\
+	\Chargeparam{circle} & 真偽値を取り、\CFval{true}のときは\chevrons{原子}を円形ノードに配置します。
+        そうでない場合はノードは矩形です。\\
+	\Chargeparam{macro charge} & それぞれの\chevrons{電荷}を引数として受け取るマクロ（例えば\verb|\printatom|や\verb|\ensuremath|）\\
+	\Chargeparam{extra sep} & \chevrons{電荷}を配置する際の、\chevrons{原子}ノードサイズの増分。
+        これは\TIKZ{}の\CFkey{inner sep}に渡される値です。\\
+	\Chargeparam{overlay} & 真偽値を取り、\CFval{true}のとき\chevrons{電荷}を「オーバーレイ」として、つまり最終的なバウンディングボックスの外側に描画します。\\
+	\Chargeparam{shortcuts} & 真偽値を取り、\CFval{true}のときLewis式を描画するためのショートカット
+``\verb-\.-''、``\verb-\:-''、``\verb-\|-''および``\verb-\"-''を有効にします。\\
+
+	\Chargeparam{lewisautorot} & 真偽値を取り、\CFval{true}のとき``\verb-\:-''、``\verb-\|-''および``\verb-\"-''を自動的に回転させます。\\
+
+	\Chargeparam{.radius} & ``\verb|\.|''および``\verb|\:|''での点の半径\\
+	\Chargeparam{:sep} & ``\verb|\:|''の2つの点の間の距離\\
+	\Chargeparam{.style} & ``\verb|\.|''および``\verb|\:|''の点を描画で使用される\TIKZ{}スタイル\\
+
+	\Chargeparam{"length} & 矩形``\verb-\"-''および線``\verb-\|-''の長さ\\
+	\Chargeparam{"width} & 矩形``\verb-\"-''の幅\\
+	\Chargeparam{"style} & 矩形``\verb-\"-''の描画で使用される\TIKZ{}スタイル\\
+	\Chargeparam{|style} & 線``\verb-\|-''の描画で使用される\TIKZ{}スタイル\\\hline
+\end{longtable}
+\endgroup
+
+これらのパラメーターの一部（または全て）を設定するには、マクロ
+\begin{center}
+	\Verb|\setcharge{<キーワード>=<値>形式のリスト}|
+\end{center}
+を実行し、全てのパラメーターをデフォルト値にリセットするには
+\begin{center}
+	\verb|\resetcharge|
+\end{center}
+を実行します。
+\verb|\charge|マクロは（\chevrons{パラメーター}で指定されていない限り）\chevrons{電荷}をバウンディングボックスの外に配置します。
+一方\verb|\Charge|では\chevrons{電荷}はバウンディングボックスの内に配置されます。
+\medbreak
+
+\chevrons{角度}は、\chevrons{電荷}が配置されるノードの境界上の位置です。
+この\chevrons{角度}は度で与えることも、``south east''などの\TIKZ{}アンカーで与えることもできます。
+\chevrons{距離}は\TeX{}の長さであり、\chevrons{原子}ノードの境界と\chevrons{電荷}が配置される位置との間に追加される長さを表します。
+\chevrons{tikzコード}内に指定されていない限り、\chevrons{電荷}のアンカーは\emph{center}です。
+\medbreak
+
+パラメーターの変更によって起きる変化を分かりやすくするために、次の2つの例では\CFkey{debug}を\CFval{true}に設定しています。
+さらに、マクロ\verb|\Charge|が使用され、バウンディングボックスが電荷を含むようにしています。
+ここでは、ノードの形状が電荷の配置に与える影響を見てみましょう。
+
+\exemple{一般的な例}|\setcharge{debug}
+デフォルトおよび円形：
+\Charge{30=\:,120=$\ominus$,210=$\delta^+$}{Fe}\qquad
+\Charge{[circle]30=\:,120=$\ominus$,210=$\delta^+$}{Fe}|
+
+電荷$\ominus$と$\delta^+$をもっと遠くに配置するには、
+\chevrons{距離}や、より良い方法としてアンカーで調整できます。
+電荷が配置される\chevrons{角度}は\verb|\chargeangle|マクロに保存されているので、
+アンカーを\verb|180+\chargeangle|とするのが賢いやりかたです。
+また、電荷を配置するために円形ノードを指定することも可能です。
+
+\exemple{位置の微調整}|\setcharge{debug}
+\Charge{30=\:,120:3pt=$\ominus$,210:5pt=$\delta^+$}{Fe}\qquad
+\Charge{[circle]30=\:,
+        120[circle,anchor=180+\chargeangle]=$\ominus$,
+        210[anchor=180+\chargeangle]=$\delta^+$}{Fe}|
+
+円形ノードは「古典的」な矩形ノードとは\emph{ときに非常に異なる}長さ、特に水平方向および垂直方向の広がりを持つことに注意が必要です。
+したがって、キーワード\CFkey{circle}を\CFval{true}に設定しようとするときは、そのことを十分意識したうえで設定することをお勧めします。
+\exemple{円形のノード}/\chemfig{\charge{90=\.}{N}H_3}：矩形ノード\smallbreak
+\chemfig{\charge{[circle]90=\.}{N}H_3}：円形ノード/
+
+\subsection{ルイス構造式}
+
+\CFkey{shortcut}が\CFval{true}のとき、ルイス構造式
+{\setcharge{extra sep=0pt}``~\Charge{0=\.}{\vphantom{A}}~''、``~\Charge{0=\:}{\vphantom{A}}~''、``~\Charge{0=\|}{\vphantom{A}}~''および``~\Charge{0=\"}{\vphantom{A}}~''}を描画するためのショートカット
+``\verb|\.|''、``\verb|\:|''、``\verb-\|-''および``\verb-\"-''
+が有効になります。
+\verb|\disableshortcuts|マクロを使えばいつでもこれを無効にすることができ、\verb|\enableshortcuts|で再度有効にできます。
+
+\CFkey{shortcut}が\CFval{false}であるか、ショートカットが\verb|\disableshortcuts|で無効にされている場合、ショートカット
+``\verb|\.|''、``\verb|\:|''、``\verb-\|-''および``\verb-\"-''
+はルイス構造式を描画するためには使えないので、
+かわりに\verb|\chargedot|、\verb|\chargeddot|、\verb|\chargeline|および\verb|\chargerect|マクロを使用する必要があります。
+\medbreak
+
+キーワード\CFkey{lewisautorot}はデフォルトで\CFval{true}であり、描画の際に
+{\setcharge{extra sep=0pt}``~\Charge{0=\:}{\vphantom{A}}~''、``~\Charge{0=\|}{\vphantom{A}}~''および``~\Charge{0=\"}{\vphantom{A}}~''}
+を回転させます。
+
+\exemple{自動回転}/\Charge{60=\:,150=\"}{A} と
+
+\Charge{[lewisautorot=false]60=\:,150=\"}{A}/
+
+ルイス構造式のカスタマイズは\verb|\setcharge|マクロまたは\verb|\charge|のオプション引数を使って、キーワード\insertxkanjiskip\CFkey{.radius}、\CFkey{:sep}、\CFkey{.style}、\CFkey{|style}、\CFkey{"length}、\CFkey{"width}および\insertxkanjiskip\CFkey{"style}を設定することで行います。
+また、各構造式のオプション引数に$\mbox{\CFkey{キーワード}}=\mbox{\chevrons{値}}$のリストを与えることで、これらのキーワードを変更することも可能です。
+
+\exemple{カスタマイズ}/\Charge{[.radius=1.5pt,.style={draw=gray}]
+   45  =\.[{.style={draw=none,fill=red}}],
+   135 =\.[{.style={draw=none,fill=blue}}],
+   -45 =\.[{.style={draw=none,fill=green}}],
+   -135=\.}{A}\quad
+\Charge{
+   45 =\"[{"style={draw=red,fill=gray}}],
+   135=\"[{"width=3pt,"style={line width=.8pt,draw=blue,fill=cyan}}]}{A}/
+
+\subsection{\CF{}の中で使う}
+
+\verb|\charge|マクロは原子の代わりに使用できます。
+
+\exemple{\CF{}中の電荷}*\chemfig{H-\charge{45:1.5pt=$\scriptstyle+$,-45=\|,-135=\"}{O}(-[2]H)-H}*
+
+なお\CF{}の現在のバージョンでは、原子のサイズが0、すなわち幅、高さ、深さが全て\verb|0pt|である場合には結合が\emph{くっつく}ように変更されています。
+以前のバージョンでは、そのようになるのは原子が空のときだけでした。
+この新機能により、炭素鎖に電荷を配置するのが容易になりました。
+
+\exemple{炭素鎖上の電荷}/\chemfig{[:30]-\charge{90=\:}{}
+-[:-30]\charge{-90=\"}{}-\charge{90:2pt=$\delta^+$}{}-[:-30]}/
+
+\section{積み重ね}
+\label{chemabove}
+次のマクロ
+\begin{center}
+	\Verb|\chemabove[<長さ>]{<コード>}{<内容>}|
+\end{center}
+および
+\begin{center}
+	\Verb|\chembelow[<長さ>]{<コード>}{<内容>}|
+\end{center}
+はそれぞれ\Verb-<コード>-の上および下の垂直距離\Verb-<長さ>-の位置に\Verb-<内容>-を配置します。
+その際\Verb-<コード>-の\falseverb{バウンディングボックス}は変化しません。
+オプション引数を指定すると、それぞれの呼び出しでこの長さを指定できます。
+オプション引数が使用されない場合、デフォルト値\CFval{1.5pt}が使用されます。
+この値は\chevrons{キーワード} \CFkv{stack sep}{長さ}で変更できます。
+
+これらのコマンドは、\verb-\chemfig-マクロとは独立しており、その引数の内でも外でも使用できます。
+
+これらは環で特に便利ですが、\CF{}が文字A、B、C、Dで新しい原子を開始しないように、これらを波括弧の中に書く必要があることに注意してください。
+\exemple{環での積み重ね}|\chemfig{*5(-\chembelow{A}{B}--\chemabove{C}{D}--)}|
+
+\label{Chemabove}\falseverb{\Chemabove}および\falseverb{\Chembelow}コマンドも同様の機能を持ちますが、バウンディングボックスは上または下に配置された\Verb-<内容>-を含みます。
+
+1つのアイテムを別のアイテムの上または下に配置する場合に、\verb|\chemabove|と\verb|\charge|の違いは何でしょうか。
+\exemple{\string\chemabove\space{}と\string\charge}/\chemfig{*5(----\chemabove{A}{\oplus}-)}
+\chemfig{*5(----\charge{90[anchor=-90]=$\oplus$}{A}-)}/
+
+デフォルトではこれら2つのマクロは非常に似た結果を与えます。ただし、\verb|\charge|マクロは\TIKZ{}を必要としますが、\verb|\chemabove|および\verb|\chembelow|は低レベルの\TeX{}プリミティブを使用しているため、高速であり、パッケージに依存しないという違いがあります。
+
+\section{{\protect\ttfamily\protect\textbackslash chemfig}を{\protect\ttfamily tikzpicture}環境で使う}
+{\ttfamily\falseverb{tikzpicture}}環境内で\falseverb{\chemfig}を呼ぶこともできます。
+\exemple{tikzpicture内での\textbackslash chemfig}|\begin{tikzpicture}[help lines/.style={thin,draw=black!50}]
+		\draw[help lines] (0,0) grid (4,4);
+		\draw(0,0) -- (2,1);
+		\draw(2,2) circle (0.5);
+		\node at (1,3) {\chemfig{A=B-[:30]C}};
+		\node[draw,red,anchor=base] at(3,2){\chemfig{X>[2,,,,blue]Y}};
+\end{tikzpicture}|
+
+\section{分子の記述の例\dmd{}注釈を添えて}\label{exemples.commentes}
+
+この節ではこれまで説明した方法を使用していくつかの分子を描いてみます。
+ここでの目的は、\CF{}に不慣れなユーザーが複雑な分子の描き方を学べるように、分子を組み立てるための順序を論理的に示すことです。
+学習を助けるために、分子を構築する手順を段階を追って説明します。
+
+加えて、同じ結果が得られる異なった書き方を示します。
+これには直感的なものもそうではないものもありますが、\CF{}が分子の記述において一定の柔軟性を持っていることを示します。
+それぞれがどのように組み合わされているかを確認し、自分に最も使いやすい方法を採用することができます。
+
+\subsection{エタナール}
+ここではエタナール（慣用名 アセトアルデヒド）分子を描いてみます。
+\chemfig{H-C(-[2]H)(-[6]H)-C(-[7]H)=[1]O}
+
+非環状分子を描く最適な方法は、最長の鎖を選択することです。
+ここでは例えば``\verb|H-C-C=O|''を選ぶことができます。
+結合\verb|C=O|は、事前定義された角度``\verb-[1]-''を使用して45\degres{}で描かれています。
+これにより、分子の「主鎖」が得られ、わずかな側鎖を追加するだけで済みます。
+\exemple{エタナールの主鎖}|\chemfig{H-C-C=[1]O}|
+
+3つの水素原子は、事前定義された角度の助けを借りて正しい方向に配置する必要があります。
+最初のものは側鎖``\verb/(-[2]H)/''として90\degres{}に、2番目は``\verb/(-[6]H)/''を270\degres{}に、右側のものは``\verb/(-[7]H)/''を315\degres{}に配置します。
+\exemple{エタナール}|\chemfig{H-C(-[2]H)(-[6]H)-C(-[7]H)=[1]O}|
+
+\subsection{2-アミノ-4-オキソヘキサン酸}
+次の例はこの分子です。
+\chemfig{-[::+30]-[::-60](=[:-90]O)-[::+60]-[::-60](-[:-90]NH_2)-[::+60](=[:90]O)-[::-60]OH}
+
+ほとんどの分子においてそうであるように、この分子を描く方法はいくつかあり、それぞれに異なるやり方があります。
+ここでは4つの異なる方法を見ていきます。
+
+\subsubsection{角度の直接指定}
+まず角度を直接指定して中心となる鎖を描きます。
+オプション引数でデフォルトの角度を$+30\degres$に設定しておけば、下降する結合に対してのみ角度を$-30\degres$に指定するだけで済みます。
+\exemple{主鎖（角度の直接指定）}|\chemfig{[:30]--[:-30]--[:-30]--[:-30]OH}|
+
+その後、側鎖``\verb/(=[6]O)/''、``\verb/(-[6]NH_2)/''および``\verb/(=[2]O)/''を、正しい頂点に追加します。
+\exemple{分子（角度の直接指定）}|\chemfig{[:30]--[:-30](=[6]O)--[:-30](-[6]NH_2)-(=[2]O)-[:-30]OH}|
+
+\subsubsection{相対角度}
+より一般的な方法は、次のような相対角度のみを使用する方法です。
+\exemple{構造（相対角度）}|\chemfig{[:30]--[::-60]--[::-60]--[::-60]OH}|
+
+そして、
+\exemple{分子（相対角度）}|\chemfig{[:30]--[::-60](=[::-60]O)--[::-60](-[::-60]NH_2)
+-(=[::60]O)-[::-60]OH}|
+
+\subsubsection{環}
+
+この方法はあまり自然ではありませんが、結合間の角度が120\degres{}なので、六員環を使って描くことができます。
+ここで、環は未完成のままにすることができるという特徴を利用します。
+最初の頂点が環の南東に来るようにするために、環を120\degres{}回転させる必要があります。
+\exemple{主鎖（環）}|\chemfig{[:120]NH_2*6(---=O)}|
+
+次に、正しい頂点に側鎖を追加します。
+\exemple{分子（環）}|\chemfig{[:120]NH_2*6(-(-(=[::60]O)-[::-60]OH)--(--[::60])=O)}|
+
+\subsubsection{入れ子の環}
+
+環の方法をさらに掘り下げると、不完全な六員環を入れ子にする方法も考えられます。
+次の主鎖から始めましょう。
+\exemple{主鎖（入れ子の環）}|\chemfig{*6(--*6(--=O))}|
+
+次に、これらの環の頂点から出る結合を追加します。
+環から出る結合は環の2つの辺の二等分線であり、まさに求めているものなので、角度について悩む必要はありません。
+\exemple{分子（入れ子の環）}|\chemfig{*6((-)-(=O)-*6(-(-NH_2)-(-OH)=O))}|
+
+よく見ると、酸素原子への二重結合の2つ目の線分は不完全な六員環の\emph{内部}にあります\footnote{このことは、1つの環で描いた方法にも当てはまります。}。
+このコードは簡潔ではありますが、完璧な結果を与えてくれません。
+もちろん、コードを少し追加することで修正できます。
+\exemple{分子（修正された入れ子の環）}|\chemfig{*6((-)-(=O)-*6(-(-NH_2)-(-OH)(=[::60]O)))}|
+
+\subsection{グルコース}
+
+ここでの目標は、グルコース分子をいくつかの異なる形式で描くことです。
+
+\subsubsection{破線・くさび形表記}
+
+このコードは、2-アミノ-4-オキソヘキサン酸のものに似ています。
+そのときと同様に角度を直接指定してほぼ同じ構造が得られますが、ここではデフォルトの角度を$-30\degres$とします。
+\exemple[60]{主鎖}|\chemfig{[:-30]HO--[:30]--[:30]--[:30]-H}|
+
+側鎖の追加は何の問題もありません。事前定義された角度を使用します。
+\exemple[60]{破線・くさび形表記のグルコース}|\chemfig{[:-30]HO--[:30](<[2]OH)-(<:[6]OH)
+-[:30](<:[2]OH)-(<:[6]OH)-[:30](=[2]O)-H}|
+
+\subsubsection{フィッシャー投影式}
+ここでの目標は、以下の分子を描くことです。
+\begin{center}
+	\definesubmol{x}{(-[4]H)(-[0]OH)}
+	\definesubmol{y}{(-[0]H)(-[4]OH)}
+	\chemfig{[2]OH-[3]-!x-!x-!y-!x-=[1]O}
+\end{center}
+デフォルトの角度を``\verb-[2]-''に設定し、最長の鎖を垂直に描きます。
+骨格は以下のようになります。ここでは、それぞれの垂直な結合の後に小文字で文字を追加してあります。
+\exemple{骨格}|\chemfig{[2]OH-[3]-a-b-c-d-=[1]O}|
+
+次に、水平にのびている結合とその端にある原子を描くために2つの別名を定義します。
+``\verb-x-''を小文字のa、b、dと置き換え、``\verb-y-''を文字cと置き換えます。
+これらの別名は1文字だけなので、``\verb-!{x}-''ではなく、波括弧なしで``\verb-!x-''と書くことができます：
+\exemple{グルコース（フィッシャー投影式）}|\definesubmol{x}{(-[4]H)(-[0]OH)}
+\definesubmol{y}{(-[0]H)(-[4]OH)}
+\chemfig{[2]OH-[3]-!x-!x-!y-!x-=[1]O}|
+
+\subsubsection{「いす形」表現}
+
+次は$\alpha$-\textsc{d}-グルコース分子を描きましょう。
+\chemfig{?(-[:190]OH)-[:-50](-[:170]OH)-[:10](-[:-55,0.7]OH)-[:-10](-[6,0.7]OH)-[:130]O-[:190]?(-[:150,0.7]-[2,0.7]OH)}
+
+そのためにまず、いすの五つの辺を描き、最初の頂点と最後の頂点をフック``\verb-?-''によって繋ぎます。
+角度は$-50\degres$、$10\degres$、$-10\degres$、$130\degres$、$190\degres$を反時計回りに指定します。
+\exemple{構造}|
+\chemfig{?-[:-50]-[:10]-[:-10]-[:130]O-[:190]?}|
+
+あとは単に側鎖を括弧内に書いて追加するだけです。
+次の例では、角度は最も遠近感が出るように選ばれ、一部の結合は0.7倍に短縮されています。
+\exemple{「いす形」表現}|\chemfig{?(-[:190]OH)-[:-50](-[:170]OH)-[:10](-[:-55,0.7]OH)
+-[:-10](-[6,0.7]OH)-[:130]O-[:190]?(-[:150,0.7]-[2,0.7]OH)}|
+
+\subsubsection{ハース投影式}
+
+次の目標は\textsc{d}-グルコピラノース分子を描くことです。
+\chemfig[cram width=2pt]{HO-[2,0.5,2]?<[7,0.7](-[2,0.5]OH)-[,,,,line width=2pt](-[6,0.5]OH)>[1,0.7](-[6,0.5]OH)-[3,0.7]O-[4]?(-[2,0.3]-[3,0.5]OH)}
+
+まず最長の鎖を選ぶと、左の``HO''グループから始まり、5つの辺を通る環になります。
+環はフックを使って閉じられます。
+最初の``HO'' グループから出る垂直な結合は、オプション引数を使用して2番目の原子から出ることを指示する必要があります。
+さらにこの結合を0.5倍に短縮します。
+したがってオプション引数は``\verb/[2,0.5,2]/''となります。
+
+次に、環に遠近感を与えるために、斜めの結合は0.7倍に短縮します。太い斜線には底辺の長さを2ptに再定義した三角形によるくさび形結合を使用します。
+太い水平の結合は太さ2ptで描く必要があるため、オプション引数``\verb/[0,,,,line width=2pt]/''を指定します。
+分子の骨格を描くと次のようになります。
+\exemple{構造}|\chemfig[cram width=2pt]{HO-[2,0.5,2]?<[7,0.7]-[,,,,
+line width=2pt]>[1,0.7]-[3,0.7]O-[4]?}|
+
+最後に、側鎖を正しい場所に正しい角度で、必要に応じて長さを短くして追加し、より良い遠近感を与えるようにします。
+\exemple{ハース投影式}|\chemfig[cram width=2pt]{HO-[2,0.5,2]?<[7,0.7](-[2,0.5]OH)-[,,,,
+line width=2pt](-[6,0.5]OH)>[1,0.7](-[6,0.5]OH)-[3,0.7]
+O-[4]?(-[2,0.3]-[3,0.5]OH)}|
+
+\subsection{アドレナリン}
+
+アドレナリン分子を描きましょう。
+\chemfig{*6((-HO)-=-(-(<[::60]OH)-[::-60]-[::-60,,,2]HN-[::+60]CH_3)=-(-HO)=)}
+
+2種類の方法を使用します。
+
+\subsubsection{1つの環を使う}
+
+まず、六員環から始め、そこから出る側鎖の始まりを描きます。
+\exemple[60]{アドレナリンの骨格}|\chemfig{*6((-HO)-=-(-)=-(-HO)=)}|
+
+右の側鎖は、例えば相対角度を使用して完成させます。
+\exemple[60]{アドレナリン ステップ2}|\chemfig{*6((-HO)-=-(--[::-60]-[::-60]
+HN-[::+60]CH_3)=-(-HO)=)}|
+
+次にくさび形結合で繋った\verb-OH-を追加し、さらに``\verb-HN-''への結合が第2の原子、
+すなわち``N''に到着するように指示する必要があります。
+そのために結合の4つ目のオプション引数を使用します。
+\exemple[60]{アドレナリン}|\chemfig{*6((-HO)-=-(-(<[::60]OH)-[::-60]-[::-60,,,2]
+HN-[::+60]CH_3)=-(-HO)=)}|
+
+\subsubsection{2つの環を使う}
+
+この方法はあまり自然ではありませんが、ここでは結合を不可視にする方法を示すことが目標です。
+
+アドレナリン分子が隣接する2つの六員環で構成されていると考えると、上のコードは次のように改善できます。
+\exemple[60]{アドレナリンの2環骨格}|\chemfig{*6((-HO)-=*6(--HN---)-=-(-HO)=)}|
+
+右の環の最初の2つの結合を見えなくする必要があります。
+これを行うために、\TIKZ{}に渡される引数``\verb-draw=none-''を使用します。
+したがってこれらの結合のコードは``\verb/-[,,,,,draw=none]/''となります。
+コードを読みやすく保つために、この結合に``\verb-&-''という別名を定義します。
+\exemple[60]{アドレナリン ステップ2}|\definesubmol{&}{-[,,,,draw=none]}
+\chemfig{*6((-HO)-=*6(!&!&HN---)-=-(-HO)=)}|
+
+残りは簡単です。正しい頂点に側鎖を追加するだけです。
+\exemple[60]{アドレナリン ステップ3}|\definesubmol{&}{-[,,,,draw=none]}
+\chemfig{*6((-HO)-=*6(!&!&HN(-CH_3)--(<OH)-)-=-(-HO)=)}|
+
+最後に、``\verb-HN-''において、結合が\textbf{2番目の原子に到達し、ここから出発する}ことを指定します。
+そのために``\verb-HN-''に到達する見えない結合に、新しい別名を定義します。
+\exemple[60]{アドレナリン}|\definesubmol{&}{-[,,,,draw=none]}
+\definesubmol{&&}{-[,,,2,draw=none]}
+\chemfig{*6((-HO)-=*6(!&!{&&}HN(-CH_3)-[,,2]-(<OH)-)-=-(-HO)=)}|
+
+\subsection{グアニン}
+グアニン分子を描きましょう。
+\chemfig{*6((-H_2N)=N-*6(-\chembelow{N}{H}-=N?)=?-(=O)-HN-[,,2])}\medskip
+
+まず、入れ子の環を描いて、窒素原子だけを頂点に置くことから始めましょう。
+\exemple{グアニン骨格}|\chemfig{*6(=N-*6(-N-=N)=--N-)}|
+
+次に、右の環の水平な結合をフックで描きます。
+また、\verb-\chembelow{N}{H}-コマンドを使用して、五員環の窒素原子の下に水素原子を配置します。
+分子の左上の頂点は``\verb-N-''ではなく``\verb-HN-''と書く必要があります。
+\exemple{グアニン ステップ2}|\chemfig{*6(=N-*6(-\chembelow{N}{H}-=N?)=?--HN-)}|
+
+1つの結合が間違った原子から出発してしまっています
+\footnote{
+\texttt{HN}グループから最初の頂点に向う結合の角度は
+$-90\degres$と$90\degres$の間にあるので、非論理的であるように思われます。
+したがって、\CF{}は結合を2番目の原子から出発させるべきです。
+この矛盾を説明するには、環では最後の結合は常に最後の頂点を最初の頂点に繋げることを知っておく必要があります。
+その際、この結合の\emph{計算された理論的}角度（ここでは$-90\degres$）を無視します。
+\CF{}はこの理論的な角度を使用して出発原子と到着原子を決定しますが、結合を描くためには使用しません。
+なぜなら、両端はすでに定義されているからです。したがって、最後の結合の出発原子は1番目の原子となります。}。
+この結合が1番目の原子ではなく2番目の原子``\verb-N-''から出発するように、自動的に計算された結果を修正する必要があります。
+そのために、最初の六員環の最後の結合にオプション引数``\verb-[,,2]-''を与えます。
+\exemple{グアニン ステップ3}|\chemfig{*6(=N-*6(-\chembelow{N}{H}-=N?)=?--HN-[,,2])}|
+
+あとは、六員環の頂点に側鎖を追加するだけです。
+特に、1つ目の六員環の1つ目の頂点から出発する側鎖``\verb/(-H_2N)/''に注意してください。
+\exemple{グアニン}|\chemfig{*6((-H_2N)=N-*6(-\chembelow{N}{H}-=N?)=?-(=O)-HN-[,,2])}|
+
+よく見る正五角形の環を使った描き方もできます。
+\exemple{五員環を使ったグアニン}|\chemfig{*6((-H_2N)=N-*5(-\chembelow{N}{H}-=N-)=-(=O)-HN-[,,2])}|
+
+\section{こんなときは……}
+\subsection{色付きの原子を描くには}
+
+\verb-xcolor-パッケージが\TIKZ{}によって読み込まれ、
+\TIKZ{}は\CF{}によって読み込まれるため、分子コード内に色を変更するためのコマンドを書くことができます。
+主に\falseverb{\color}と\falseverb\textcolor{}を使います。
+原子は\TIKZ{}ノード内に表示されますが、これは\TeX{}のボックスのように動作するので、これらの原子はグループ内に
+置かれているのと同様になります。
+したがって、色の変更は当該原子に対してのみ有効です。
+\exemple{色付け}/\chemfig{C\color{blue}H_3-C(=[1]O)-[7]O\color{red}H}/
+
+原子を分割するルールが原因で、このコードはうまく動きません。
+ここでは、最初の原子は``\verb-C-''から始まり、次の大文字まで続くことになります。
+するとこの原子は``\verb-C\color{blue}-''となり、色の変更は原子の終わりで発生し、結局のところ何の効果もありません。
+したがって``\verb-|-''によって\CF{}に最初の原子を``\verb-C-''の直後での分割を強制し、
+\verb-\color{blue}H_3-を波括弧で囲むことで、\CF{}が大文字の``\verb-H-''の前で2つ目の原子を分割しないようにする必要があります。
+さもないと、色を変化させる命令だけが1つの原子として扱われ、やはり効果が無効になってしまいます。
+\exemple{色付け}/\chemfig{C|{\color{blue}H_3}-C(=[1]O)-[7]O|{\color{red}H}}/
+
+同じ効果を得るために\verb-\textcolor-を使うこともできます。
+\exemple{色付け}/\chemfig{C|\textcolor{blue}{H_3}-C(=[1]O)-[7]O|\textcolor{red}{H}}/
+
+主な欠点は、色付けの必要がある全ての原子に対して、たとえそれらが隣接していたとしても、同じことをしなければならないことです。
+
+\subsection{結合を変更せずに上付き文字を追加するには}
+
+数学的な指数の形で原子に\falseverb{電荷}を加えると、その原子を含むボックス（したがって\TIKZ{}ノード）の寸法が変更されます。
+このことはその原子が鎖の最後にある場合は重要ではありませんが、その原子から結合が出る場合は整列が崩れる場合があります。
+これを解決する1つ目の方法は、電荷を幅のないボックスに入れる、すなわち\falseverb\rlap{}コマンドを使用することです%
+\footnote{原子の左側に電荷を置く必要がある場合は\texttt{\string\llap}コマンドを使用しなければなりません。}。
+多くの場合、この方法で良好な結果が得られます。
+次の例を見ると、\falseverb\rlap{}を使用することで、原子の\falseverb{水平整列}が保持されていることがわかります。
+\exemple{電荷と結合}/\chemfig{A^+-[2]B}
+\qquad
+\chemfig{A\rlap{${}^+$}-[2]B}/
+
+\verb|\charge|マクロを使えば、この処理を簡単かつ正確に実行することができます。
+\exemple{電荷の配置}/\chemfig{\charge{[extra sep=0pt]45[anchor=180+\chargeangle]=%
+$\scriptstyle\oplus$}{A}-[2]B}
+\qquad
+\chemfig{*5(---\charge{90:2pt=$\scriptstyle\oplus$}{}-%
+\charge{135:2pt=$\scriptstyle-$}{}-)}/
+
+\subsection{結合を曲線で描くには}
+
+\TIKZ{}の``\verb-decorations.pathmorphing-''ライブラリーを使用すると、
+波線を使って結合を描くことができることはすでに見ました。
+\exemple{波線の結合}|\chemfig{A-[,3,,,decorate,decoration=snake]B}
+
+\chemfig{A-[,3,,,decorate,decoration={snake,amplitude=1.5mm,
+    segment length=2.5mm}]B}|
+
+より柔軟性を持たせるために、文字``\verb-@-''を使用してノードを定義し、
+分子が描かれた後に\falseverb\chemmove{}を使ってこれらのノードを曲線で繋げることもできます。
+
+\exemple{曲った結合}/\chemfig{@{a}A-[,,,,draw=none]@{b}B}
+\chemmove{\draw[-](a)..controls +(45:7mm) and +(225:7mm)..(b);}
+\bigskip
+
+\chemfig{*6(@{a}---@{b}---)}
+\chemmove{\draw[-](a)..controls +(60:3em) and +(240:3em)..(b);}
+\quad
+\chemfig{*6(@{a}---@{b}---)}
+\chemmove{\draw[-](a)..controls +(60:3em) and +(30:1em)..
+    ++(20:2em) ..controls +(210:3em) and +(-120:4em) ..(b);}/
+
+\subsection{重合体の要素を描くには}\label{polymerdelim}
+
+\verb|\polymerdelim|マクロはこれまで文書化されておらずテスト段階にありましたが、
+\CF{}バージョン1.33で正式に採用されました。
+その構文は次のとおりです。
+\begin{center}
+	\Verb|\polymerdelim[<キーワード>=<値>形式のリスト]{<ノード1>}{<ノード2>}|
+\end{center}
+
+おそらく\textbf{2回のコンパイル}の後、指定されたノードに垂直の区切り線が配置されます。
+パラメーターは\chevrons{キーワード}と\chevrons{値}で指定されます。
+具体的なキーワード、デフォルト値および動作を次表に示します。
+
+\begin{center}
+\begin{tabular}{rl>{\baselineskip=\CFjaptabularbaselineskip}p{8cm}}\hline
+	\chevrons{キーワード} & デフォルト\chevrons{値} & 動作\\\hline
+        \CFdelimparam{delimiters} & 区切り記号を指定します。角括弧を使用する場合は\verb|delimiters={[]}|と記述します。\\
+	\CFdelimparam{height} & 区切り記号の（ノードより上の）高さを定義します。\\
+	\CFdelimparam{depth}  & 区切り記号の（ノードより下の）深さを定義します。\chevrons{値}が空の場合は、深さは高さと同じ値になります。\\
+	\CFdelimparam{h align}&ブール値を取り、\CFval{false}の場合、2番目の区切り記号を2番目のノードに配置します。
+                                このとき、区切り記号が同じ水平線上に配置されない可能性があります。\\
+	\CFdelimparam{auto rotate}&ブール値を取り、\CFval{true}かつ\CFkv{h align}{false}の場合に、区切り記号を2つのノードを結ぶ線に対して垂直になるように回転させて配置します。\\
+	\CFdelimparam{rotate}&2つの区切り記号の回転角度を設定します。\CFkv{h align}{false}かつ\CFkv{auto rotate}{false}の場合のみ有効です。\\
+	\CFdelimparam{open xshift}& 開き区切り記号の水平オフセットを設定します。\\
+	\CFdelimparam{close xshift}& 閉じ区切り記号の水平オフセットを設定します。\chevrons{値}が空の場合、このオフセットは開き区切り記号の水平オフセットの逆になります。\\
+	\CFdelimparam{indice} & 閉じ区切り記号の右下に配置する添え字を定義します。\\\hline
+\end{tabular}
+\end{center}
+
+\exemple*{重合体}|ポリエチレン:
+\chemfig{\vphantom{CH_2}-[@{op,.75}]CH_2-CH_2-[@{cl,0.25}]}
+\polymerdelim[height = 5pt, indice = \!\!n]{op}{cl}
+\bigskip
+
+ポリ塩化ビニル:
+\chemfig{\vphantom{CH_2}-[@{op,1}]CH_2-CH(-[6]Cl)-[@{cl,0}]}
+\polymerdelim[height = 5pt, depth = 25pt, open xshift = -10pt, indice = \!\!n]{op}{cl}
+\bigskip
+
+ナイロン6:
+\chemfig{\phantom{N}-[@{op,.75}]{N}(-[2]H)-C(=[2]O)-{(}CH_2{)_5}-[@{cl,0.25}]}
+\polymerdelim[height = 30pt, depth = 5pt, indice = {}]{op}{cl}
+\bigskip
+
+ポリカプロラクタム:
+\chemfig[atom sep = 2em]{[:-30]-[@{left,.75}]N(-[6]H)-[:30](=[2]O)--[:30]--[:30]--[@{right,0.25}:30]}
+\polymerdelim[height = 5pt, indice = \!\!n]{left}{right}
+\bigskip
+
+ポリフェニレンスルフィド:
+\chemfig{\vphantom{S}-[@{op,.75}]S-(**6(---(-[@{cl,0.25}])---))}
+\polymerdelim[delimiters = (), height = 15pt, indice = {}]{op}{cl}
+\bigskip
+
+\chemfig{-CH_2-CH([6]-CO-NH-CH_2-NH-CO-CH([4]-CH_2-)([0]-[@{downleft,0.8},2]CH_2
+-CH([2]-CO-NH_2)-[@{downright,0.3},2]CH_2-[,1.5]C?H-))-[@{upleft,0.8},2]CH_2
+-CH([6]-CO-NH_2)-[@{upright,0.3},2]CH_2-[,1.5]CH([6]-CO-NH-CH_2-NH-C?O)-}
+\polymerdelim[delimiters ={[]}, height = 5pt, depth = 40pt, indice = n]{upleft}{upright}
+\polymerdelim[delimiters ={[]}, height = 40pt, depth = 5pt, indice = n]{downleft}{downright}
+
+\chemfig{-[@{op,.5}:-30]O-[::60](=[::60]O)-[::-60]*6(-=-(-(=[::-60]O)-[::60]O-[::-60]-[::60]-[@{cl,.5}::-60])=-=)}
+\polymerdelim[height=6ex, indice=n, h align=false]{op}{cl}|
+
+\subsection{分子の反転形を描くには}\label{retournement}
+
+\falseverb{\hflipnext}コマンドと\falseverb{\vflipnext}コマンドはそれぞれ、次に書かれた分子を水平または垂直軸に対して対称に描きます。
+複数の反転形を描きたい場合は、それぞれの対象分子の前にこれらのコマンドを書かなければなりません。
+\exemple{反転形}/\chemfig{H_3C-C(=[:30]O)-[:-30]OH}% オリジナル
+
+\vflipnext
+\chemfig{H_3C-C(=[:30]O)-[:-30]OH}\medskip
+
+\chemfig{H_3C-C(=[:30]O)-[:-30]OH}% オリジナル
+\hflipnext
+\chemfig{H_3C-C(=[:30]O)-[:-30]OH}/
+
+\subsection{結合に沿ってテキストを追加したり、角度の弧を描くには}
+
+``\verb-@-''が「グローバルな」\TIKZ{}ノード、つまり分子が描かれた後にアクセス可能なノードを配置することを理解したならば、
+\TIKZ{}がノードに対してできること（つまり多くのこと）が可能になります。
+
+結合の上または下に何かを書くには、この結合の両端にある原子それぞれに「グローバル」ノードを置き、それらの中間にテキストを配置した上で、結合のちょうど上または下に来るように位置を上げ下げします。
+これを実現するのが、以下のコードの\verb-\namebond-マクロです。
+
+2つの結合の間に弧を描くには、3つの原子の上にそれぞれ「グローバル」ノードを置く必要があります。
+\verb-\arcbetweennodes-マクロは、あるノードから引かれた2つの線の間の角度を計算します。
+次に、\verb-\arclabel-が2つの結合の間に弧を描き、その弧のそばにテキストを書きます。
+このマクロの最初のオプション引数は、弧をカスタマイズするために使用される\TIKZ{}コードです。
+2番目の引数は弧の半径で、次の3つの引数は弧を描くべきグローバルノードの名前であり、2つ目に頂点になるノードを指定します。
+最後の引数は、弧のそばに書かれるテキストです。
+
+\exemple*{弧と結合に沿ったテキスト}|\newcommand\angstrom{\mbox{\normalfont\AA}}
+\newcommand\namebond[4][5pt]{\chemmove{\path(#2)--(#3)node[midway,sloped,yshift=#1]{#4};}}
+
+\newcommand\arcbetweennodes[3]{%
+  \pgfmathanglebetweenpoints{\pgfpointanchor{#1}{center}}{\pgfpointanchor{#2}{center}}%
+  \let#3\pgfmathresult}
+
+\newcommand\arclabel[6][stealth-stealth,shorten <=1pt,shorten >=1pt]{%
+  \chemmove{%
+    \arcbetweennodes{#4}{#3}\anglestart \arcbetweennodes{#4}{#5}\angleend
+    \draw[#1]([shift=(\anglestart:#2)]#4)arc(\anglestart:\angleend:#2);
+    \pgfmathparse{(\anglestart+\angleend)/2}\let\anglestart\pgfmathresult
+    \node[shift=(\anglestart:#2+1pt)#4,anchor=\anglestart+180,rotate=\anglestart+90,inner sep=0pt,
+          outer sep=0pt]at(#4){#6};}}
+
+\chemfig{@{a}A=[:30,1.5]@{b}B-[7,2]@{c}C-@{d}D}
+\namebond{a}{b}{\scriptsize テキスト}
+\namebond[-3.5pt]{b}{c}{\small\color{red}$\pi$}
+\namebond{c}{d}{\small1 \angstrom}
+\medskip
+
+水平な水分子：\chemfig{@{1}H-[::37.775,2]@{2}O-[::-75.55,2]@{3}H}.
+\namebond{1}{2}{\footnotesize0.9584 \angstrom}
+\namebond{2}{3}{\footnotesize0.9584 \angstrom}
+\arclabel{0.5cm}{1}{2}{3}{\footnotesize104.45\textdegree}
+\qquad
+30\textdegree{}回転した水分子：\chemfig{[:30]@1H-[::37.775,2]@2O-[::-75.55,2]@3H}
+\namebond12{\footnotesize0.9584 \angstrom}
+\namebond23{\footnotesize0.9584 \angstrom}
+\arclabel{0.5cm}{1}{2}{3}{\footnotesize104.45\textdegree}|
+
+\subsection{多重結合を描くには}
+
+\TIKZ{}の``decorations.markings''ライブラリーを使うと、多重結合を書くことができます。
+
+\exemple*{多重結合}|\catcode`_=11
+\tikzset{nbond/.style args={#1}{%
+	draw=none,%
+	decoration={%
+		markings,%
+		mark=at position 0 with {\coordinate (CFstart@) at (0,0);},
+		mark=at position 1 with {%
+		\foreach\CF_i in{0,1,...,\number\numexpr#1-1}{%
+			\pgfmathsetmacro\CF_nbondcoeff{\CF_i-0.5*(#1-1)}%
+			\draw ([yshift=\CF_nbondcoeff\CF_doublesep]CFstart@)--(0,\CF_nbondcoeff\CF_doublesep);
+			}%
+		}
+		},
+	postaction={decorate}
+	}
+}
+\catcode`\_=8
+\chemfig{A-[1,,,,nbond=4]B-[:-30,,,,nbond=5]C-[6,,,,nbond=6]D}|
+
+\part{反応式}\label{schemas}
+
+ユーザーからの複数のリクエストにより、\CF{}が反応式の描画に関して弱点を抱えていることが明らかになりました。
+この欠点は今や解消され、\CF{}はバージョン1.0になりました。
+これは、そのための主要な機能がすでに利用可能になっていると考えているためです。
+
+この部で紹介される新機能に関するテストと支援をしてくれたClemens \textsc{Niederberger}に感謝します。
+
+\section{概要}\label{schemestart}
+
+反応式は``\falseverb\schemestart''コマンドと``\falseverb\schemestop''コマンドの間に書かなくてはなりません。
+次の例に示すように、\chevrons{キーワード} \CFkey{scheme debug}に値\CFval{true}または\CFval{false}を設定することで、
+\falseverb{デバッグ情報}の表示・非表示を設定できます。
+\exemple[50]{例1}/\setchemfig{scheme debug=false}
+\schemestart
+  \chemfig{*6(-=-=-=)}\arrow
+  \chemfig{X=[1]Y}\arrow
+  \chemfig{S>T}
+\schemestop
+\bigskip
+
+\setchemfig{scheme debug=true}
+\schemestart
+  \chemfig{*6(-=-=-=)}\arrow
+  \chemfig{X=[1]Y}\arrow
+  \chemfig{S>T}
+\schemestop/
+
+以下の点に注意してください。
+\begin{itemize}
+	\item \falseverb{\arrow}コマンドは矢印を描画します。
+
+	\item 2つの\falseverb{\arrow}コマンドの間にあるものは全て\falseverb{化合物}と見なされます。
+          矢印か化合物かによらず全ての設定は、\falseverb{\arrow}コマンドの引数によって制御されます。
+          その構文はかなり複雑になる場合があります。
+
+	\item 矢印は水平方向に描画されますが、これはもちろん変更可能です。
+
+	\item 矢印は化合物のバウンディングボックスの中心を結ぶ仮想的な線の上に描画されます。
+          （赤い四角と青い四角は矢印のアンカーポイントです。）この動作も変更可能です。
+
+	\item デバッグ情報は\chevrons{キーワード} \CFkey{scheme debug}で表示・非表示が決まります。
+          trueの場合は以下のものが表示されます。
+	\begin{itemize}
+		\item バウンディングボックスの上に書かれる緑のラベル。これは、\CF{}によって化合物に割り当てられたデフォルト名であり、
+                  ``c1''、``c2''のように連続した番号が振られます。
+                  番号は各反応式ごとに1にリセットされます。
+
+		\item 化合物のバウンディングボックス
+
+		\item 赤い点で示される矢印の始点と終点、および青い点で示されるアンカー
+	\end{itemize}
+	\item 2つの化合物の端から端までの距離は、\chevrons{キーワード} \CFkv{compound sep}{長さ}\label{compound sep}で定義されます。
+          この \CFval{長さ}のデフォルトは5emです。
+	\item 最後に、化合物の端と矢印の始点および終点の間の距離は、\chevrons{キーワード} \CFkv{arrow offset}{長さ}で定義されます。この\CFval{長さ}のデフォルトは4ptです。\label{arrow offset}
+\end{itemize}
+
+\section{矢印の種類}\label{arrow}
+\falseverb{\arrow}コマンドの後に波括弧内に書かれたオプション引数（これは必須ではありません）が続く場合、その引数は矢印の種類を指定します。
+\exemple[50]{矢印の種類}|\schemestart A\arrow{->}B\schemestop\par % デフォルト
+
+\schemestart A\arrow{-/>}B \schemestop\par
+\schemestart A\arrow{<-}B \schemestop\par
+\schemestart A\arrow{<->}B \schemestop\par
+\schemestart A\arrow{<=>}B \schemestop\par
+\schemestart A\arrow{<->>}B \schemestop\par
+\schemestart A\arrow{<<->}B \schemestop\par
+\schemestart A\arrow{0}B \schemestop\par
+\schemestart A\arrow{-U>}B \schemestop|
+
+上の例では矢印``\verb/-U>/''は完全には描かれておらず、コマンドのオプション引数を使用して矢印の中央に接する弧を追加できます
+（\pageref{fleche.arg.optionnel}ページ参照）。
+例えば上に弧がある``\verb/-U>/''は、
+\schemestart A\arrow{-U>[$\scriptstyle x$][$\scriptstyle y$]}B\schemestop
+などのようになります。
+
+以降では分かりやすさのために、いくつかの例を除き、\falseverb\chemfig{}コマンドによる化学式の代わりに大文字を使用します。
+もちろん、反応式は文字でも分子でも同様に機能します。
+ギャラリーには反応式の例が示されています。
+
+\section{矢印の特徴付け}
+
+各\falseverb{矢印}は以下により特徴付けられます。
+\begin{itemize}
+	\item 度で与えられる角度
+	\item 矢印の長さを決定する係数。
+          これは、\CFkey{compound sep}で定義される化合物間の間隔に対する倍率として定義されます。
+	\item 矢印の色、太さ、またはその他のグラフィック属性をカスタマイズするための\TIKZ{}コマンドによるスタイル
+\end{itemize}
+
+これらの特徴は以下の\chevrons{キーワード}で定義されます。
+\begin{itemize}
+	\item \CFkv{arrow angle}{角度}。デフォルトは0
+	\item \CFkv{arrow coeff}{数値}。デフォルトは1
+	\item \CFkv{arrow style}{tikzコード}。デフォルトは空
+\end{itemize}
+
+\exemple[50]{デフォルト値の定義}/\schemestart A\arrow B\arrow C\schemestop
+
+\setchemfig{arrow angle=15,arrow coeff=1.5,
+arrow style={red, thick}}
+\schemestart A\arrow B\arrow C\schemestop
+
+\setchemfig{arrow coeff=2.5,arrow style=dashed}
+\schemestart A\arrow B\arrow C\schemestop
+
+\setchemfig{arrow angle={},arrow coeff={},arrow style={}}
+\schemestart A\arrow B\arrow C\schemestop/
+
+これらのデフォルト値の一部または全てをローカルに変更するには、
+\falseverb{\schemestart}コマンドに{%
+  \ltjsetparameter{autoxspacing=false, autospacing=false}
+  \verb-[角度,係数,スタイル]-}の形式でオプション引数を与えます。
+これにより、その反応式内でのみデフォルト値を変更します。
+\exemple[50]{オプション引数}/\setchemfig{arrow angle=5,arrow coeff=2.5,arrow style=blue}
+\schemestart A\arrow B\arrow C\schemestop
+
+\schemestart[0] A\arrow B\arrow C\schemestop
+
+\schemestart[0,1] A\arrow B\arrow C\schemestop
+
+\schemestart[0,1,thick] A\arrow B\arrow C\schemestop
+
+\schemestart[0,1,black] A\arrow B\arrow C\schemestop/
+
+スタイルに関するルールは次のとおりです。
+角括弧内の引数で指定されたスタイルはデフォルトスタイルの\emph{後}に適用され、
+指定したスタイルがデフォルトで上書きされることはありません。
+このため上の例では、``black''と書いた場合のみ、デフォルトスタイル「青」を上書きできます。
+
+最後に、\falseverb{\arrow}コマンドは与えられた矢印の特徴を変更するために、角括弧内のオプション引数{%
+  \ltjsetparameter{autoxspacing=false, autospacing=false}%
+  \verb-[角度,係数,スタイル]-}を取ります。
+前述の場合と同様に、このスタイルはデフォルトスタイルと\verb-\schemestart-コマンドのオプション引数で指定されたスタイルの\emph{後}に適用されるので、
+デフォルトスタイルが角括弧内のオプション引数を上書きすることはありません。
+\exemple[50]{矢印の特徴付け}/\schemestart
+  A\arrow[45]B\arrow[-20,2]C
+\schemestop
+\bigskip
+
+\schemestart
+  A\arrow[90,,thick]B\arrow[,2]C
+  \arrow[-45,,dashed,red]D
+\schemestop/
+
+\section{化合物名}
+
+化合物に自動的に付けられた名前（``c1''、``c2''など）は上書きできます。
+そのためには\falseverb{\arrow}コマンドの直後に、\verb/(n1--n2)/の形式の引数を書きます。
+矢印の始まりと終わりに位置する化合物は、それぞれ``\verb-n1-''と``\verb-n2-''と名付けられます。
+任意の英数字の文字列を使用できます。
+名前``c<n>''の番号付けは内部的に続行されるため、\falseverb{化合物}の名前がデフォルトから変更されていても、以降の化合物のデフォルト名に影響しません。
+
+名前はオプショナルであり、引数は\verb/(n1--)/や\verb/(--n2)/でも構いません。
+
+\exemple[50]{化合物名}/\setchemfig{scheme debug=true}
+\schemestart
+  A\arrow(aa--bb)B\arrow(--cc)C\arrow(--dd)D\arrow E
+\schemestop
+\bigskip
+
+\schemestart
+  A\arrow(aa--)B\arrow(bb--)C\arrow(cc--dd)D\arrow E
+\schemestop/
+この例のように、2つの方法は同等であり、入ってくる矢印によっても、出ていく矢印によっても化合物に名前を付けることができることに注意してください。
+ただし、\falseverb{化合物}がその名前を指定する2つの矢印に挟まれている場合、最初の名前は無視され、その旨の警告メッセージが表示されます。
+\exemple[50]{過剰な命名}/\setchemfig{scheme debug=true}
+\schemestart
+  A\arrow(--foo)B\arrow(bar--)C
+\schemestop/
+ここで\falseverb{化合物}``B''は、それを指す矢印によって``foo''と名付けられ、そこから出る矢印によって``bar''と名付けられています。
+したがって\CF{}は、名前``foo''が無視されることを警告するメッセージを表示します。
+
+\begin{center}
+\begin{tabular}{l}
+\verb-Package chemfig Warning: two names for the same node, first name "foo" ignored-\\
+\small （パッケージ chemfig 警告: 同じノードに対する2つの名前。最初の名前\insertxkanjiskip\verb-"foo"-が無視されました。）
+\end{tabular}
+\end{center}
+
+\section{アンカー}
+
+上述のように、矢印は化合物のバウンディングボックスの中心を結ぶ線上にあります。このデフォルトのアンカーは\TIKZ{}用語では``center'' と呼ばれます。
+デフォルトではないアンカーポイントを使いたい場合は、括弧内に引数を書いて指定することもできます。
+
+\hfill\verb/(n1.a1--n2.a2)/\hfill\null
+
+ここで``\verb-a1-''や``\verb-a2-''がアンカーであり、
+north west、north、north east、west、center、east、mid west、mid、mid east、base west、base、base east、south west、south、south east、textおよび任意の角度を指定できます。
+次の図は\TIKZ{}のマニュアル内の例で、バウンディングボックスに配置されているアンカーを示しています。
+\exemple*{\TIKZ{}のアンカー}|\Huge
+\begin{tikzpicture}[baseline]
+\node[anchor=base west,name=x,draw,inner sep=25pt] {\color{lightgray}Rectangle\vrule width 1pt height 2cm};
+\foreach \anchor/\placement in
+{north west/above left, north/above, north east/above right,west/left, center/above, east/right,
+mid west/left, mid/above, mid east/right,base west/left, base/below, base east/right,
+south west/below left, south/below, south east/below right,text/below,10/right,45/above,150/left}
+\draw[shift=(x.\anchor)] plot[mark=x] coordinates{(0,0)}
+node[\placement,inner sep=0pt,outer sep=2pt] {\scriptsize\texttt{(\anchor)}};
+\end{tikzpicture}|
+名前と同様に、到着および出発アンカーポイントは独立であり、オプションです。
+
+次の例は、2つの``A''が異なる垂直位置にあり、デフォルトの整列がうまくいってない場合です。
+デバッグ情報から、デフォルトの``center''アンカーは適切でないことが分かります。
+\exemple[50]{整列の問題}/\setchemfig{scheme debug=true}
+\schemestart
+  \chemfig{A*5(-----)}
+  \arrow
+  \chemfig{A*5(---(-)--)}
+\schemestop/
+整列が正しくなるためには、矢印は``base east''から``base west''へ、あるいは``mid east''から``mid west''へ出発・到着する必要があります。
+\exemple[50]{整列の問題}/\setchemfig{scheme debug=true}
+\schemestart
+  \chemfig{A*5(-----)}
+  \arrow(.base east--.base west)
+  \chemfig{A*5(---(-)--)}
+\schemestop
+\bigskip
+
+\schemestart
+  \chemfig{A*5(-----)}
+  \arrow(foo.mid east--bar.mid west)
+  \chemfig{A*5(---(-)--)}
+\schemestop/
+
+最後に、次の図の左側の化合物に緑の点として示しているアンカーは、
+直前のテキストの\falseverb{ベースライン}に対する最初の\falseverb{化合物}のアンカーです。
+\exemple[50]{開始アンカー}/\setchemfig{scheme debug=true}
+前のテキスト：
+\schemestart
+  \chemfig{A*5(-----)}\arrow A
+\schemestop/
+
+最初の\falseverb{化合物}のバウンディングボックスにおけるこのアンカーのデフォルトは``text''です。
+この位置は、\falseverb{\schemestart}コマンドの2番目のオプション引数で制御できます。
+\exemple[50]{初期アンカーの調整}/\setchemfig{scheme debug=true}
+前のテキスト：
+\schemestart[][south]
+  \chemfig{A*5(-----)}\arrow A
+\schemestop
+\bigskip
+
+前のテキスト：
+\schemestart[][north west]
+  \chemfig{A*5(-----)}\arrow A
+\schemestop
+\bigskip
+
+前のテキスト：
+\schemestart[][west]
+  \chemfig{A*5(-----)}\arrow A
+\schemestop/
+
+\section{化合物のスタイル}
+
+\falseverb{\arrow}コマンドに括弧内に書かれた引数を与えると、
+反応における反応物と生成物のバウンディングボックスのスタイル``\verb-s-''
+を指定することができます。
+出発・到着\falseverb{化合物}のスタイル``\verb-s-''は\TIKZ{}コードを使用して記述し、それぞれ角括弧の引数として与えます。
+したがって\falseverb{\arrow}コマンドの完全な構文は次のようになります。ここで、各指定はオプションであり省略可能です。
+
+{\ltjsetparameter{autoxspacing=false, autospacing=false}
+\hfill\verb/\arrow(n1.a1[s1]--n2.a2[s2]){矢印の種類}[角度,係数,矢印のスタイル]/\hfill\null
+}
+
+名前の場合と同様に、同一の化合物に対して到着する矢印と出発する矢印の両方にスタイルが指定されている場合、最初のスタイルは警告とともに無視されます。
+\exemple[60]{化合物のスタイル}/\schemestart
+  A
+  \arrow([red]--[fill=blue,semitransparent,text opacity=1,
+  inner sep=10pt,rounded corners=2mm])
+  B
+\schemestop
+\bigskip
+
+\schemestart
+  A\arrow(--foo[yshift=5mm])B
+\schemestop/
+
+\label{setcompoundstyle}\chevrons{キーワード} \CFkv{compound style}{tikzコード}を設定すると、
+それ以降に描画される化合物のスタイルをグローバルに定義することができます。
+空の引数を与えるとスタイルなし、つまりデフォルトになります。
+
+次の例では、角が丸まった矩形と半透明の背景を持つスタイルが指定されています。
+\exemple[50]{グローバルスタイル}/\setchemfig{compound style={draw,line width=0.8pt,
+semitransparent,text opacity=1,inner sep=8pt,
+rounded corners=1mm}}
+\schemestart
+  A\arrow([fill=red]--[fill=blue])[90]
+  B\arrow(--[fill=gray])
+  C\arrow(--[fill=green])[-90]
+  D\arrow(--[draw=none])[-180]
+\schemestop/
+
+\section{分岐}
+
+これまでは一直線の反応式のみを扱ってきました。
+分岐する反応式も描くことができますが、ここで化合物名が重要な役割を果たします。
+\falseverb{\arrow}コマンドの括弧の引数内で名前の前に``\verb-@-''が付いている場合は、その\falseverb{化合物}がすでに存在することを意味します。
+いくつかのケースが考えられます。
+\begin{itemize}
+	\item \verb/(@n1--n2)/：矢印は既存の化合物``\verb-n1-''から出発し、その矢印の後に反応図が続くため、分岐が作成されます。
+	\item \verb/(@n1--@n2)/：それらがすでに定義されているか反応式内のこれより後で定義されるかにかかわらず、
+          矢印は2つの既存の化合物の間に描かれます。したがってこの構文は反応式のコード内の\emph{どこにでも}書くことができます。
+	\item \verb/(n1--@n2)/：この構文は許されません。
+\end{itemize}
+
+次図は、まず``B''から、次に``D''から、最後は``X''からの3つの分岐が作成される例です。
+最後に2つの既存の化合物``XX''と``D''の間に矢印が描かれます。
+\exemple[50]{分岐}/\schemestart
+  A\arrow(aa--bb)B\arrow(--cc)C\arrow D
+  \arrow(@bb--xx1)[-90]X\arrow[-90]Y% 1つ目の分岐
+  \arrow(@c4--)[-90]Z\arrow W% 2つ目の分岐
+  \arrow(@xx1--xx2)[-45]XX% 3つ目の分岐
+  \arrow(@xx2--@c4)% XXからDへの矢印
+\schemestop/
+
+``Y''と``XX''を同じ水平線上の高さに配置したいかもしれません。
+そのためには``Y''と``XX''の間に水平の見えない結合を描きます。
+そして、2つの既存の化合物``XX''と``D''の間に最後の矢印を描いて、この反応式を完成させます。
+\exemple[50]{分岐}/\schemestart
+  A\arrow(aa--bb)B\arrow(--cc)C\arrow D
+  \arrow(@bb--xx1)[-90]X\arrow[-90]Y\arrow(--xx2){0}XX
+  \arrow(@c4--)[-90]Z\arrow W
+  \arrow(@xx1--@xx2)% XからXXへの矢印
+  \arrow(@xx2--@c4)% XXからDへの矢印
+\schemestop/
+
+\section{部分反応式}\label{subscheme}
+
+反応式の一部を単一のバウンディングボックスに配置し、\CF{}に1つの\falseverb{化合物}として扱わせることができます。
+部分反応式の定義は\falseverb{\subscheme}コマンドの必須の引数として波括弧内に記述され、それ以降は単一の要素として扱われます。
+\falseverb{\subscheme}が矢印の後に置かれた場合は、このコマンドはこの部分反応式に\falseverb{化合物}としての名前``c<n+1>''を付けます。
+\exemple[50]{部分反応式}/\setchemfig{scheme debug=true}
+\schemestart
+  A\arrow
+  \subscheme{B\arrow[-90,2]C}
+  \arrow
+  D
+\schemestop/
+
+ラベルが重なっているために明確には見えませんが、部分反応式の周りのボックスの名前は``c2''であり、
+部分反応式内ではBに``c3''、Cに``c4''という名前が付いています。
+部分反応式内の最初の\falseverb{化合物}は``B''なので、部分反応式のベースラインは``B''のベースラインとなります。
+アンカーを指定してみると、それが明確になります。
+\exemple[50]{部分反応式}/\setchemfig{scheme debug=true}
+\schemestart
+  A\arrow(--.mid west)
+  \subscheme{B\arrow[-90,2]C}
+  \arrow
+  D
+\schemestop/
+``\falseverb\subscheme\Verb-{<反応式>}-''は単なる
+\begin{center}
+\falseverb\schemestart\Verb-<反応式>-\falseverb\schemestop
+\end{center}
+の便利なショートカットにすぎないので、\falseverb\schemestart{}と同じオプション引数を使用することができます。
+
+\label{chemleft}\CF{}では\falseverb{\chemleft}と\falseverb{\chemright}のコマンド対を使用できます。
+これにより、要素の両側に伸縮可能な区切り記号を設定することができます。
+\TeX{}のプリミティブコマンド\verb-\left-と\verb-\right-の場合と同様に、コマンドの後には区切り記号が続かなければなりません。
+\begin{center}
+	\Verb/\chemleft<car1><要素>\chemright<car2>/
+\end{center}
+ここで\Verb-<car1>-と\Verb-<car2>-は、``(''と``)''あるいは``[''と``]''など、
+\verb-\left-、\verb-\right-コマンドで使用可能な任意の伸縮可能な区切り記号です。
+\exemple{\string\chemleft{}、\string\chemright{}マクロ}/\chemleft\lfloor\chemfig{A-[1]B}\chemright)
+
+\chemleft\{\chemfig{A-[1,1.25]B-[6,1.25]C}\chemright|
+
+\chemleft[\chemfig{H-[1]O-[7]H}\chemright]/
+上述の反応式のコードに\falseverb{\chemleft}と\falseverb{\chemright}を加えると、次のような出力が得られます。
+\exemple{\string\chemleft{}と\string\chemright{}を使った反応式}/\schemestart
+  A\arrow
+  \chemleft[\subscheme{B\arrow[-90,2]C}\chemright]
+  \arrow
+  D
+\schemestop/
+\label{chemup}同様に、\falseverb{\chemup}マクロおよび\falseverb{\chemdown}マクロを使用すると、
+それぞれ要素の上と下に伸縮可能な区切り記号を描くことができます。
+\begin{center}
+	\Verb/\chemup<car1><要素>\chemdown<car2>/
+\end{center}
+例えば、次のような図を描くことができます。
+\exemple{\string\chemup{}マクロと\string\chemdown{}マクロ}/\schemestart[-90]
+X\arrow
+\chemup\{\chemfig{A-[1]B-[7]C}\chemdown\}
+\arrow Y
+\schemestop
+\qquad
+\schemestart[-90]
+X\arrow
+\chemup[\chemfig{A-[1]B-[7]C}\chemdown]
+\arrow Y
+\schemestop/
+
+区切り記号は化合物のスタイル指定を使って描くこともでき、任意の化合物（したがって部分反応式を含みます）に適用できます。
+このとき伸縮可能な区切り記号（括弧、角括弧、波括弧）は、文書のプリアンブルに
+次のように書いて\TIKZ{}の``matrix''ライブラリーを読み込むことで使用できます。
+
+\hfill\verb-\usetikzlibrary{matrix}-\hfill\null
+
+\CF{}パッケージでは\falseverb{\chemleft}、\falseverb{\chemright}、\falseverb{\chemup}および\falseverb{\chemdown}コマンドが
+利用可能なので、\CF{}はこのライブラリーを自動的には\emph{読み込みません}。
+したがって``matrix''ライブラリーが提供する区切り記号を使用したい場合は、ユーザーが明示的にこのライブラリーを読み込む必要があります。
+
+``matrix''ライブラリーを使って前述の反応式を書き直すと、次のようになります。
+\exemple[50]{``matrix''ライブラリーによる区切り記号}/\schemestart
+  A\arrow(--[left delimiter={[}, right delimiter={]}])
+  \subscheme{B\arrow[-90,2]C}
+  \arrow
+  D
+\schemestop/
+区切り記号がバウンディングボックスの外に描かれるため、入ってくる矢印と出ていく矢印を少し短くすると良いでしょう。
+\exemple[50]{部分反応式}/\schemestart
+  A\arrow(--[left delimiter={[},
+  right delimiter={]}])[,,shorten >=6pt]
+  \subscheme{B\arrow[-90,2]C}
+  \arrow[,,shorten <=6pt]
+  D
+\schemestop/
+
+部分反応式は注意して使用しないと、望ましくない結果をもたらすことがあります。
+次の例では、部分反応式を使用して3つの化合物を水平方向に整列させています。
+\exemple[50]{部分反応式}/\setchemfig{scheme debug=true}
+\schemestart
+  A
+  \arrow{0}[-90]
+  \subscheme{%
+    tagada\arrow{}
+    tsoin\arrow{}
+    fin}
+  \arrow(xx--yy){}E
+  \arrow(@c1--@c3){}
+  \arrow(@c1--@c5){}
+  \arrow(@c1--@c4){}
+\schemestop/
+部分反応式の中心と化合物``A''の中心は、完全に同じ垂直線上に位置しています。
+これは、2つの要素が$-90\degres$の見えない矢印で接続されているからです。
+しかし、もともとあった化合物``A''と``tsoin''の間の矢印は\emph{垂直ではありません}。
+``tagada''は``fin''よりも幅が広いので、``tsoin''が部分反応式の中央にならないからです。
+この矢印を\falseverb{\subscheme}コマンドを使用して垂直にするには、見えない矢印の到着アンカーの正しい角度を試行錯誤で見つけなければなりません。
+
+この場合は、部分反応式を使用せずに分岐を利用する方がはるかに簡単です。
+``A''と``tsoin''の間に\emph{見える}矢印を引き、``tsoin''から左右に水平な矢印を引いた上で、右側への矢印のための分岐を作成します。
+\exemple[50]{部分反応式}/\setchemfig{scheme debug=true}
+\schemestart
+  A
+  \arrow(--tsoin){->}[-90]
+  tsoin
+  \arrow{<-}[180]
+  tagada
+  \arrow(@tsoin--fin){}
+  fin
+  \arrow{}
+  E
+  \arrow(@c1--@c3){}
+  \arrow(@c1--@fin){}
+\schemestop/
+
+\section{矢印のオプション引数}\label{fleche.arg.optionnel}
+\falseverb\arrow{}コマンドの波括弧内に書かれた引数の中では、
+矢印の名前の後に角括弧を使ったオプション引数を続けることができます。
+矢印のオプション引数が取り得る値とその意味は、\CF{}において次のように定義されています。
+\begin{itemize}
+ 	\item 矢印``\verb|->|''、``\verb|<-|''、``\verb|<->|''、``\verb|<=>|''、``\verb|<<->|'',``\verb|<->>|''、``\verb|-/>|''には、3つのオプション引数があります。
+ 	\begin{itemize}
+ 		\item 最初の引数は、矢印の上に配置される「ラベル」です。
+ 		\item 2番目の引数は、矢印の下に配置される「ラベル」です。
+                  これら2つのラベルの向きは、矢印と同じ角度になります。
+                  矢印とラベルのアンカーの間の、矢印に対して垂直方向の間隔は、\chevrons{キーワード} \CFkv{arrow label sep}{長さ}\label{arrow label sep}
+                  で調整でき、その値はデフォルトで3ptです。2つのオプション引数に含まれるラベルは\emph{数式モードではありません}。
+ 		\item 3番目の引数は、矢印に適用される、矢印に対して垂直方向の移動の距離です。
+                  この距離が正の場合は矢印（およびラベルがある場合はそのラベル）が上に、負の場合は下に移動します。
+ 	\end{itemize}
+
+	\item 矢印``\verb|-U>|''には5つのオプション引数があります。
+	\begin{itemize}
+		\item 最初の3つは、他の矢印と同様です。
+		\item 4番目は、弧の半径を与える、矢印の長さに対する倍率（デフォルトは0.333）です。
+		\item 5番目は、弧の中心角の半分で、デフォルトは60度です。
+	\end{itemize}
+
+	\item 見えない矢印``\verb-0-''は2つのオプション引数を取り、それぞれ他の矢印の最初の2つのオプション引数と同様です。
+\end{itemize}
+\exemple[50]{矢印のオプション引数}/\setchemfig{scheme debug=false}
+\schemestart A\arrow{->[上][下]}B \schemestop
+\qquad
+\schemestart A\arrow{->[上][下][4pt]}B \schemestop
+\qquad
+\schemestart A\arrow{->[上][下][-4pt]}B \schemestop
+\medskip
+
+\schemestart A\arrow{<=>[上][下]}[30,1.5]B \schemestop
+\medskip
+
+\schemestart[-20]
+  A\arrow{->}B\arrow{->[][][3pt]}C\arrow{->[][][-3pt]}D
+\schemestop/
+矢印が鉛直方向の場合は問題が発生します。
+\exemple[50]{鉛直方向の矢印}/\schemestart
+  A\arrow{->[うえ][した]}[-90]B
+\schemestop/
+読みやすさのために、「うえ」と「した」のラベルを水平に書きたいと思うかもしれません。
+ラベルの角度は指定することができ、デフォルトは矢印と同じ角度です。
+別の角度を指定するには、オプション引数の最初に \Verb-*{<角度>}-と書きます。
+\exemple[55]{ラベルの角度指定}/\setchemfig{scheme debug=true}
+\schemestart A\arrow{->[*{0}うえ][*{0}した]}[90]B\schemestop
+\qquad
+\schemestart A\arrow{->[*{0}うえ][*{0}した]}[45]B\schemestop
+\qquad
+\schemestart A\arrow{->[*{0}うえ][*{0}した]}[-45]B\schemestop
+\qquad
+\schemestart A\arrow{->[*{0}うえ][*{0}した]}[-90]B\schemestop/
+ラベルのアンカーの位置がデフォルトのままの場合は、望ましくない結果になる可能性があります。
+\exemple[50]{Anchors}/\setchemfig{scheme debug=true}
+\schemestart
+  A\arrow{->[*{0}矢印の上方][*{0}下部]}[45,2]B
+\schemestop/
+このような問題を避けるために、\Verb-*{<角度>.<アンカー>}-%
+の構文でアンカーを指定して、\CF{}のデフォルトを上書きすることができます。
+\exemple[50]{アンカー}/\setchemfig{scheme debug=true}
+\schemestart
+  A\arrow{->[*{0.0}矢印の上方][*{0.180}下部]}[45,2]B
+\schemestop
+\qquad
+\schemestart
+  A\arrow{->[*{0.south east}矢印の上方]%
+    [*{0.north west}下部]}[45,2]B
+\schemestop/
+
+特別な矢印``\verb/-U>/''は、最初の2つのオプション引数の少なくとも一方にラベルが含まれている場合、対応する弧が描画されます。
+\exemple[50]{The \texttt{-U>} arrow}/\schemestart A\arrow{-U>[123][456]}B\schemestop
+\qquad
+\schemestart A\arrow{-U>[123]}[30]B\schemestop
+\qquad
+\schemestart A\arrow{-U>[][456]}[-30]B\schemestop/
+
+4番目と5番目のオプション引数は、弧の外観を変更します。
+それぞれ、
+矢印の長さを単位とする弧の半径と、
+弧の中心角の半分です。
+\exemple[50]{矢印\texttt{-U>}}/\schemestart A\arrow{-U>[123][456][][0.25]}B\schemestop
+\qquad
+\schemestart A\arrow{-U>[123][456][][][90]}B\schemestop
+\qquad
+\schemestart A\arrow{-U>[123][456][][1][45]}B\schemestop/
+半径と角度に負の値を指定すると、弧は矢印の下に描画されます。
+\exemple[50]{矢印\texttt{-U>}}/\schemestart
+  A\arrow{-U>[123][456][][-0.333][-60]}B
+\schemestop/
+他の矢印と同様に、ラベルの角度とアンカーは最初の2つの引数でカスタマイズできます。
+\exemple[50]{矢印\texttt{-U>}}/\schemestart
+  A\arrow{-U>[123][456]}[-90]B
+\schemestop
+\qquad
+\schemestart
+  A\arrow{-U>[*{0.180}123][*{0.180}456]}[-90]B
+\schemestop/
+
+\section{矢印のカスタマイズ}\label{definearrow}
+この節の内容は非常に技術的であり、\TIKZ{}の知識が必要となります。
+つまりこの節は、独自の矢印を定義する必要のある上級ユーザーのみを対象としています。
+
+\falseverb{\definearrow}コマンドを使うと、カスタム矢印を作成できます。
+その構文は次のとおりです。
+
+\hfill\Verb-\definearrow{<数>}{<矢印の名前>}{<コード>}-\hfill\null
+
+ここで、\Verb-<数>-は\Verb-<コード>-で使用されるオプション引数の数であり、コードの中では\verb-#1-、\verb-#2-などの通常の構文で使われます。
+これらのオプション引数にデフォルト値を与えることはできません。
+\verb-\arrow-マクロを使用する際に値が指定されていない場合は、引数は空のままになります。
+
+先に進む前に、矢印を描画する際に利用できる内部マクロを確認しましょう。
+これらのマクロは名前に文字``\verb-_-''を含むため、\verb|\catcode`\_=11|コマンドと\verb|\catcode`\_=8|コマンドの間でのみ使用できます。
+
+\begin{itemize}
+	\item \falseverb{\CF_arrowstartname}と\falseverb{\CF_arrowendname}は
+          （\TIKZ{}がノードと見なす）化合物の名前であり、これらの化合物の間に矢印が描かれます。
+
+	\item \falseverb{\CF_arrowstartnode}と\falseverb{\CF_arrowendnode}は矢印の両端に位置するノードの名前です。
+          \falseverb\arrow{}コマンドの括弧内にユーザー定義のアンカーが指定されている場合は、
+          そのアンカーはこれらの名前の後に付加されます。
+
+ 	\item \falseverb{\CF_arrowcurrentstyle}と\falseverb{\CF_arrowcurrentangle}はそれぞれ、描画される矢印のスタイルと角度です。
+
+ 	\item \falseverb{\CF_arrowshiftnodes}\Verb-{<長さ>}-は、
+          ``\falseverb{\CF_arrowstartnode}''と``\falseverb{\CF_arrowendnode}''を
+          矢印に対して垂直方向に、 その引数に指定された距離だけ移動させます。
+
+ 	\item 最も複雑な\falseverb{\CF_arrowdisplaylabel}\verb/{#1}{#2}{#3}{#4}{#5}{#6}{#7}{#8}/は、
+          以下の引数でラベルの位置を指定します。
+
+ 	\begin{itemize}
+        \item \verb-#1-と\verb-#5-は表示されるラベルです。
+        \item \verb-#2-と\verb-#6-は0と1の間の実数で、矢印上でのラベルの位置を指定します。
+          0は矢印の始点を、1は終点を示します。
+          \emph{矢印は直線であると仮定されています}。
+        \item \verb-#3-と\verb-#7-は文字``+''または``-''です。``+'' の場合はラベルを矢印の上に表示し、``-''の場合は下に表示します。
+        \item \verb-#4-と\verb-#8-は矢印の始点と終点に対応するノードの名前です。
+
+ 	\end{itemize}
+
+ 	\item 矢印の矢尻は、両羽矢印の場合は``\verb-CF-''で、片羽矢印の場合のために``harpoon''オプションが付いています。
+
+        \end{itemize}
+
+\subsection{はじめての矢印}
+
+例として、中心に点が打たれた矢印を作成したいと仮定しましょう。
+これを``\verb/-.>/''と呼びます。
+この矢印は4つのオプション引数を取ります。
+事前定義されている矢印と同様に、最初と2番目の引数で矢印の上と下に配置されるラベルを指定します。
+3番目の引数は矢印の方向に対する垂直方向の移動距離を定義します。
+最後に、4番目の引数は点の大きさを定義します。
+この最後の引数がない場合、デフォルトの点の大きさは2ptになります。
+
+まず\verb/\definearrow{4}{-.>}/を使用して、
+これから定義する矢印が4つのオプション引数を持ち、その名前が\verb/-.>/であることを宣言します。
+最初に、3番目の引数による移動を考慮するために、矢印が描かれるノードの位置を変更する必要があります。
+これは\falseverb{\CF_arrowshiftnodes}マクロを使用して行うので、
+矢印のコードは\falseverb{\CF_arrowshiftnodes}\verb-{#3}%-で始めれば十分です。
+次に、矢印自体を描画し、その際にその中央に``\verb-mid@point-''という名前のノードを置き、そのノードを中心とした円を描きます。
+全体の\TIKZ{}コードは次のとおりです。
+
+{\hskip2em\verb-\edef\pt_radius{\ifx\empty#4\empty 2pt\else #4\fi}% 点の半径-\par\parskip0pt
+\hskip2em\verb/\expandafter\draw\expandafter[\CF_arrowcurrentstyle,-CF]/\par
+\hskip4em\verb/(\CF_arrowstartnode)--(\CF_arrowendnode)coordinate[midway](mid@point);/\par
+\hskip2em\verb-\filldraw(mid@point)circle(\pt_radius);%-}
+
+最後に、ラベルが指定されている場合は、次の行によってそのラベルを表示します。
+
+\hskip2em\verb/\CF_arrowdisplaylabel{#1}{0.5}{+}{\CF_arrowstartnode}{#2}{0.5}{-}{\CF_arrowendnode}/
+
+こうして完成した矢印は次のようになります。
+\exemple*{矢印``-.>''}/\catcode`\_11
+\definearrow4{-.>}{%
+  \edef\pt_radius{\ifx\empty#4\empty 2pt\else #4\fi}% 点の半径
+  \CF_arrowshiftnodes{#3}%
+  \expandafter\draw\expandafter[\CF_arrowcurrentstyle,-CF](\CF_arrowstartnode)--(\CF_arrowendnode)
+    coordinate[midway](mid@point);
+  \filldraw(mid@point)circle(\pt_radius);%
+  \CF_arrowdisplaylabel{#1}{0.5}{+}{\CF_arrowstartnode}{#2}{0.5}{-}{\CF_arrowendnode}
+  }
+\catcode`\_8
+\schemestart
+A \arrow{-.>} B \arrow{-.>[うえ][した][][1pt]} C \arrow{-.>[][した]}[30] D \arrow{-.>[うえ][][5pt][1.5pt]} E
+\schemestop/
+
+\subsection{曲がった矢印}
+
+次は曲がった矢印を作ってみましょう。
+できるだけシンプルにするために、オプション引数を1つだけ取るものとし、その引数には制御点を指定する\TIKZ{}コードを書くものとします。
+この引数が空である場合は``\verb/-CF/''タイプの矢印が描画されます。
+
+引数\verb-#1-が空でない場合、矢印の端の位置のノード名である``\falseverb{\CF_arrowstartnode}''と``\falseverb{\CF_arrowendnode}''
+を使いたくなるかもしれませんが、そうではありません。
+なぜなら、これらのノードの位置は\emph{矢印が直線であると仮定して計算された}アンカーをもとに決定されているからです。
+その代わりに、描画されるべき矢印の始点・終点に位置する化合物名である\falseverb{\CF_arrowstartname}と\falseverb{\CF_arrowendname}（これらは\TIKZ{}ノードです）を使用します。
+2つの化合物の間に曲がった矢印を描くための\TIKZ{}コードは次のようになります。
+
+{\verb/\draw[shorten <=\CF_arrowoffset,shorten >=\CF_arrowoffset,\CF_arrowcurrentstyle,-CF,/\par\parskip0pt
+\verb/(\CF_arrowstartname).. controls #1 ..(\CF_arrowendname);%/}
+
+\falseverb{\setarrowoffset}で定義された\falseverb{\CF_arrowoffset}の分だけ矢印を短くするための\TIKZ{}コードを追加しなければなりません。
+これは、矢印が出発・到着するノードが、直線の矢印のためのノード（\falseverb{\CF_arrowstartnode}と\falseverb{\CF_arrowendnode}）ではないからです。
+したがって\falseverb{\CF_arrowcurrentstyle}の前に以下のコードを追加する必要があります。
+
+\begin{center}
+	\verb/shorten <=\CF_arrowoffset, shorten >=\CF_arrowoffset/
+\end{center}
+
+これが\verb-\else-の後の2行の役割です。
+
+最終的な曲がった矢印の定義は以下のようになります。
+\exemple*{曲がった矢印}/\catcode`\_11
+\definearrow1{s>}{%
+\ifx\empty#1\empty
+  \expandafter\draw\expandafter[\CF_arrowcurrentstyle,-CF](\CF_arrowstartnode)--(\CF_arrowendnode);%
+\else
+  \def\curvedarrow_style{shorten <=\CF_arrowoffset,shorten >=\CF_arrowoffset,}%
+  \CF_eaddtomacro\curvedarrow_style\CF_arrowcurrentstyle
+  \expandafter\draw\expandafter[\curvedarrow_style,-CF](\CF_arrowstartname)..controls#1..(\CF_arrowendname);
+\fi
+}
+\catcode`\_8
+\schemestart
+A\arrow{s>}
+B\arrow{s>[+(0.5cm,0.5cm)]}
+C\arrow{s>[+(45:1cm)]}
+D\arrow(.60--.120){s>[+(60:1cm) and +(-120:1cm)]}
+E\arrow{s>[+(45:1) and +(-135:1)]}
+F\arrow{s>[+(-30:1) and +(150:1)]}[,1.5]
+G\arrow(.90--.90){s>[+(60:1)and+(120:1)]}[,2]
+H
+\schemestop
+
+\schemestart
+A\arrow(.90--.180){s>[+(90:0.8) and +(180:0.8)]}[45]B
+\arrow(.0--.90){s>[+(0:0.8) and +(90:0.8)]}[-45]C
+\arrow(.-90--.0){s>[+(-90:0.8) and +(0:0.8)]}[-135]D
+\arrow(.180--.-90){s>[+(180:0.8) and +(-90:0.8)]}[135]
+\schemestop/
+
+\section{\protect\texttt{\textbackslash merge}コマンド}
+\falseverb{\merge}コマンドを使うことで、複数の既存の化合物から出ている矢印が1つの矢印に合流し、1つの化合物に到達するような図を描くことができます。
+
+\falseverb{\merge}コマンドの直後には、続く方向を指定する必要があります。
+これには、
+``\verb->-''（文字が入力されていない場合のデフォルトの方向）、``\verb-<-''、``\verb-^-''または``\verb-v-''
+のいずれかの文字を使用します。
+
+構文は次の通りです。
+
+\hfill\verb/\merge{方向}(n1.a1)(n2.a2)(...)(ni.ai)--(n.a[s])/\hfill\null
+
+ここで二重ハイフン\verb|--|の前にある``\texttt{n\textit{i}}''
+は、合流させたい矢印が出発している、すでに定義されている化合物の名前です。
+また、デフォルトのアンカーでは不便な場合は、
+アンカー``\texttt{a\textit{i}}''を指定することもできます。
+\falseverb\arrow{}コマンドと同様に、``\verb-n.a[s]-''コマンドで到着化合物の名前、アンカー、およびスタイルを指定します。
+
+\exemple[50]{\string\merge{}コマンド}/\schemestart
+ABC\arrow[30]EFGHIJ\arrow[45]KLM\arrow[60]NO
+\merge>(c1)(c2)(c3)--()続き1
+\arrow 続き2
+\schemestop
+\bigskip
+
+\schemestart
+ほげほげ\arrow(foo--bar){<=>}ふが\arrow(--baz){<=>}ぴよ
+\merge^(foo)(bar)(baz)--()続き
+\schemestop
+\bigskip
+
+\setchemfig{scheme debug=true}
+\schemestart
+A\arrow{<->}[90]B
+\merge<(c1.120)(c2)--(foobar.45[circle,blue])CCC
+\schemestop/
+
+\falseverb{\merge}の矢印の配置に関して、$n$個の化合物から出ている$n$個の線分が、垂直な接続線まで続きます。
+これらの線分の最小長のデフォルトは、\falseverb\setcompoundsep{}で定義された化合物間の距離の半分に相当します。
+接続線から生成物への矢印は、同じデフォルトの長さを持ち、接続線の中央から出発します。
+これらの3つの幾何学的特徴は、到着化合物の直後のオプション引数でカスタマイズできます。
+
+{\ltjsetparameter{autoxspacing=false, autospacing=false}
+\hfill\verb/\merge{方向}(n1.a1)(n2.a2)(...)(ni.ai)--(n.a[s])[c1,c2,c,スタイル]/\hfill\null
+}
+
+ここで、
+\begin{itemize}
+ 	\item 反応物と接続線の間の距離の最小値は、距離\falseverb{\setcompoundsep}に係数\verb-c1-を掛けた値であり、\verb-c1-のデフォルト値は0.5です。
+ 	\item 接続線と生成物の間の矢印の長さは、距離\falseverb{\setcompoundsep}に係数\verb-c2-を掛けた値であり、\verb-c2-のデフォルト値は0.5です。
+ 	\item 接続線と生成物の間の矢印の起点は\verb-c-によって決定され、0の場合は接続線の左端（方向が\verb-v-または\verb-^-の場合は上端）
+          から出発することを意味します。
+        \item \falseverb{\merge}の矢印のスタイルは、最後の\verb-スタイル-引数で定義されます。
+
+\end{itemize}
+
+\exemple*{\string\merge{}の配置パラメーター}/\schemestart A\arrow{<=>}[90]B\merge(c1)(c2)--()C\schemestop\qquad
+\schemestart A\arrow{<=>}[90]B\merge(c1)(c2)--()[1]C\schemestop\qquad
+\schemestart A\arrow{<=>}[90]B\merge(c1)(c2)--()[,1]C\schemestop\qquad
+\schemestart A\arrow{<=>}[90]B\merge(c1)(c2)--()[,,0.2]C\schemestop\qquad
+\schemestart A\arrow{<=>}[90]B\merge(c1)(c2)--()[,,0.9,red,thick]C\schemestop
+\bigskip
+
+\schemestart A\arrow{<=>}B\merge^(c1)(c2)--()C\schemestop\qquad
+\schemestart A\arrow{<=>}B\merge^(c1)(c2)--()[1]C\schemestop\qquad
+\schemestart A\arrow{<=>}B\merge^(c1)(c2)--()[,1]C\schemestop\qquad
+\schemestart A\arrow{<=>}B\merge^(c1)(c2)--()[,,0.2]C\schemestop\qquad
+\schemestart A\arrow{<=>}B\merge^(c1)(c2)--()[,,0.9,red,thick]C\schemestop/
+
+最後に、合流した矢印の上下にラベルを書くことが可能です。
+方向を示す文字は角括弧で書かれるオプション引数を2つ取り、それぞれ矢印の上および下に書かれるラベルです。
+したがって\falseverb{\merge}コマンドの完全な構文は次のようになります。
+
+{\ltjsetparameter{autoxspacing=false, autospacing=false}
+\hfill\verb/\merge{方向}[上ラベル][下ラベル](n1.a1)(n2.a2)(...)(ni.ai)--(n.a[s])[c1,c2,c,スタイル]/\hfill\null
+}
+
+すでに説明した矢印のラベルに関する全ての機能がここでも使用可能であり、ラベルの直前に構文%
+{\ltjsetparameter{autoxspacing=false, autospacing=false}\verb-*{角度.アンカー}-}を書くことで、ラベルの回転角度とアンカーを指定できます。
+
+\exemple*{\string\merge{}コマンドのラベル}/\schemestart
+ABC\arrow{<=>}[90]DEF\merge>[うえ][した](c1)(c2)--()[0.25,1,0.75]GHIJ
+\schemestop\qquad
+\schemestart
+ABC\arrow{<=>}[90]DEF\merge>[*{45.south west}うえ][*{45.north east}した](c1)(c2)--()[0.25,1,0.75]GHIJ
+\schemestop\qquad
+\schemestart
+ABC\arrow{<=>}[90]DEF\merge>[*{90}うえ][*{90}した](c1)(c2)--()[0.25,1,0.75]GHIJ
+\schemestop
+\bigskip
+
+\schemestart
+ABC\arrow{<=>}DEF\merge v[うえ][した](c1)(c2)--()[0.25,1,0.75]GHIJ
+\schemestop\qquad
+\schemestart
+ABC\arrow{<=>}DEF\merge v[*{45.north west}うえ][*{45.south east}した](c1)(c2)--()[0.25,1,0.75]GHIJ
+\schemestop\qquad
+\schemestart
+ABC\arrow{<=>}DEF\merge v[*{0}うえ][*{0}した](c1)(c2)--()[0.25,1,0.75]GHIJ
+\schemestop/
+
+\section{プラス記号}\label{signe+}
+
+\falseverb{\schemestart}コマンドと\falseverb{\schemestop}コマンドの間では、``\falseverb\+''マクロを使用して$+$記号を書くことができます。
+このマクロは、\Verb-{<長さ1>,<長さ2>,<長さ3>}-の構文でオプション引数を取ります。
+ここで、
+\begin{itemize}
+	\item \Verb-<長さ1>-と\Verb-<長さ2>-は、$+$記号の前と後に挿入される長さです。
+	\item \Verb-<長さ3>-は、$+$記号の垂直オフセットです。
+\end{itemize}
+
+また、\chevrons{キーワード} \CFkv{+ sep left}{長さ}、\CFkv{+ sep right}{長さ}および\CFkv{+ vshift}{長さ}を使用することで、それ以降の全ての
+プラス記号に対してこれらの長さを指定することができます。
+これらのデフォルト値は、最初の2つが0.5em、3つ目が0ptです。
+
+\exemple[50]{\string\+{}コマンド}/\schemestart
+A\+B\+{2em,,5pt}C\+{0pt,0pt,-5pt}D\arrow E\+F
+\schemestop
+
+\setchemfig{+ sep left=1em,+ sep right=1em,+ vshift=0pt}
+\schemestart
+A\+B\+{2em,,5pt}C\+{0pt,0pt,-5pt}D\arrow E\+F
+\schemestop/
+
+次の例に示すように\falseverb{\+}コマンドによって挿入された
+プラス記号は、化合物の一部であることに注意してください。
+\exemple[50]{化合物と\string\+}/\setchemfig{scheme debug=true}
+\schemestart A\+ B\+{,,5pt}C\arrow D\+ E\schemestop/
+これにより``A''の真下に垂直の矢印を正確に描くことが難しくなります。
+なぜなら\CF{}は、この文字を単一の化合物と認識しないからです。
+この問題は\falseverb{\subscheme}コマンドを使用して文字``A''を単一の化合物として定義し、
+後で独自の名前で参照できるようにすることで解決できます。（この方法は
+プラス記号自体にも適用できます。）
+\exemple[50]{部分化合物と\string\+}/\setchemfig{scheme debug=true}
+\schemestart
+\subscheme{A}\+ B\arrow C
+\arrow(@c2--)[-90]E
+\schemestop
+\medskip
+
+\schemestart
+A\subscheme{\+}BCDEF \arrow G
+\arrow(@c2--)[-90]H
+\schemestop/%
+
+よくある問題は、次の例のように``+''記号がその前あるいは後の分子と整列しないことです。
+\exemple{+記号の配置}/\setchemfig{scheme debug=true}
+\schemestart
+  \chemfig{C(<[:40])(<[:160])=[6]C(<[:-130])<[:-20]}
+  \+
+  \chemfig{\charge{90=\|,180=\|,270=\|}{Br}-\charge{0=\|,90=\|,-90=\|}{Br}}
+\schemestop/
+ここでは、``+''記号は直前の化合物のベースライン、すなわち上部の炭素原子と同じベースライン上にあります。
+``+''記号を移動させることはできますが、
+それは
+``\kern0.3333em\chemfig{\charge{90=\|,180=\|,270=\|}{Br}-\charge{0=\|,90=\|,-90=\|}{Br}}\kern0.3333em''
+の垂直位置を変えることにはなりません。
+上の例で全てが化合物`` c1''に含まれていることから分かるように、
+\CF{}は``+''記号で化合物の読み取りを停止しません。
+したがって最初の分子の直後で化合物を終了させる必要があり、そのために\verb-\arrow{0}[,0]-を使用して
+長さ0の見えない矢印を配置します。
+反応式全体を垂直方向の中央配置にするには、\verb-\schemestart-コマンドの2番目のオプション引数を使って、
+最初の化合物のアンカーを``west''（またはこれと等価な``180''）に設定する必要があります。
+\exemple{+記号の配置}/\setchemfig{scheme debug=true}
+\schemestart[][west]
+  \chemfig{C(<[:40])(<[:160])=[6]C(<[:-130])<[:-20]}
+  \arrow{0}[,0]\+
+  \chemfig{\charge{90=\|,180=\|,270=\|}{Br}-\charge{0=\|,90=\|,-90=\|}{Br}}
+\schemestop/
+このようにすると、最初の化合物``c1''は最初の分子でのみ構成され、2 番目の化合物はそれ以外の全て、すなわち``+''記号と2番目の分子で構成されることになります。
+あるいは、\verb-\arrow-コマンドでアンカーやスタイルを設定して、2番目の化合物の位置を移動することもできます。
+次の例の上のケースでは、2番目の化合物を10pt下に移動しています。
+下のケースでは、最初の化合物の``south east''アンカーを2つ目の化合物の``south west''アンカーと一致させています。
+\exemple{+記号の配置}/\setchemfig{scheme debug=true}
+\schemestart[][west]
+  \chemfig{C(<[:40])(<[:160])=[6]C(<[:-130])<[:-20]}
+  \arrow(--[yshift=-10pt]){0}[,0]\+
+  \chemfig{\charge{90=\|,180=\|,270=\|}{Br}-\charge{0=\|,90=\|,-90=\|}{Br}}
+\schemestop
+\medskip
+
+\schemestart[][west]
+  \chemfig{C(<[:40])(<[:160])=[6]C(<[:-130])<[:-20]}
+  \arrow(.south east--.south west){0}[,0]\+
+  \chemfig{\charge{90=\|,180=\|,270=\|}{Br}-\charge{0=\|,90=\|,-90=\|}{Br}}
+\schemestop/
+
+\part{コマンドリスト}
+\CF{}が提供するコマンドは以下の通りです。
+\begin{center}
+\CFjapsettablearraystretch
+\begin{longtable}{>\footnotesize l>\footnotesize p{9cm}}\\\hline
+\hfill\normalsize コマンド\hfill\null &\hfill\normalsize 説明\hfill\null\\\hline
+\Verb-\chemfig[<設定>]{<コード>}-& \Verb-<コード>-で記述された分子を描画します\\
+\Verb|\setchemfig{<設定>}|& パラメーターを構文\chevrons{キーワード}${}={}$\chevrons{値}で設定します。以下に
+完全なリストとデフォルト値を示します
+\begin{itemize}
+  \addtolength{\baselineskip}{-1pt}
+	\item \CFkv{chemfig style}       {{}}：\TIKZ{}に渡されるスタイル
+	\item \CFkv{atom style}          {{}}：\TIKZ{}ノード（原子）のスタイル
+	\item \CFkv{bond join}           {false}：結合間の接合に関する真偽値
+	\item \CFkv{fixed length}        {false}：原子間間隔を固定するか（真偽値）
+	\item \CFkv{cram rectangle}      {false}：trueのとき、破線の結合を（くさび形ではなく）矩形で描く
+	\item \CFkv{cram width}          {1.5ex}：くさび形結合の底辺の長さ
+	\item \CFkv{cram dash width}     {1pt}：くさび形結合の破線の太さ
+	\item \CFkv{cram dash sep}       {2pt}：くさび形結合の破線間の間隔
+	\item \CFkv{atom sep}            {3em}：原子間の間隔
+	\item \CFkv{bond offset}         {2pt}：原子と結合の間の間隔
+	\item \CFkv{double bond sep}     {2pt}：多重結合の線の間隔
+	\item \CFkv{angle increment}     {45}：結合の角度の増分
+	\item \CFkv{node style}          {{}}：原子のスタイル
+	\item \CFkv{bond style}          {{}}：結合のスタイル
+	\item \CFkv{cycle radius coeff}  {0.75}：環の中に描かれる円・弧の縮小率
+	\item \CFkv{stack sep}           {1.5pt}：\verb-\chemabove-および\verb-\chembelow-マクロの引数の垂直方向の間隔
+	\item \CFkv{show cntcycle}       {false}：環の番号の表示
+	\item \CFkv{baseline}            {0pt}：垂直位置を調整するための長さまたはノードの名前
+	\item \CFkv{debug}               {false}：原子と原子グループの表示
+	\item \CFkv{autoreset cntcycle}  {true}：\verb|\chemfig|の実行ごとに環の番号をリセット
+	\item \CFkv{compound style}      {{}}：化合物のスタイル
+	\item \CFkv{compound sep}        {5em}：化合物間の間隔
+	\item \CFkv{arrow offset}        {4pt}：化合物と矢印の間隔
+	\item \CFkv{arrow angle}         {0}：反応の矢印の角度
+	\item \CFkv{arrow coeff}         {1}：矢印の長さを与えるcompound sepに対する係数
+	\item \CFkv{arrow style}         {{}}：矢印のスタイル
+	\item \CFkv{arrow double sep}    {2pt}：両矢印の間隔
+	\item \CFkv{arrow double coeff}  {0.6}：両矢印``\verb|<->>|''および``\verb|<<->|''の短い矢印の縮小率
+	\item \CFkv{arrow double harpoon}{true}：両矢印の矢尻を片羽で描画
+	\item \CFkv{arrow label sep}     {3pt}：矢印とそのラベルの間隔
+	\item \CFkv{arrow head}          {-CF}：矢印の矢尻のスタイル
+	\item \CFkv{+ sep left}          {0.5em}：$+$記号の前の空き
+	\item \CFkv{+ sep right}         {0.5em}：$+$記号の後の空き
+	\item \CFkv{+ vshift}            {0pt}：$+$記号の垂直方向の移動距離
+	\item \CFkv{gchemname}           {true}：trueの場合、\verb|chemnameinit|と\verb|chemname| による深さの保存をグローバルにする
+	\item \CFkv{schemestart code}    {}：入れ子ではない反応式の最初に実行されるコード
+	\item \CFkv{schemestop code}     {}：入れ子ではない反応式の最後に実行されるコード
+\end{itemize}
+\\
+\verb|\resetchemfig|&パラメーターをデフォルト値にリセットします\\
+\falseverb\printatom& 分子内に原子を描くためのマクロ。表示をカスタマイズするために再定義できます。\pageref{perso.affichage}ページ参照\\
+\falseverb\hflipnext&次の分子を水平方向に反転して描画します\\
+\falseverb\vflipnext&次の分子を垂直方向に反転して描画します\\
+\Verb-\definesubmol{<名前>}<数字>[<コード1>]{<コード2>}- &描画する分子のコード内で使用可能な別名\Verb-!<名前>-を作成します。
+最後の結合の角度に応じて\Verb-<コード1>-または\Verb-<コード2>-に置き換えられます。\pageref{definesubmol}ページ参照\\
+\falseverb\chemskipalign&
+垂直方向の整列において現在の原子グループを無視させます。\pageref{chemskipalign}ページ参照\\
+\Verb-\redefinesubmol{<名前>}<数字>[<コード1>]{<コード2>}- & 既存の別名\Verb-!<名前>-を新しい\Verb-<コード>-で再定義します。\pageref{redefinesubmol}ページ参照\\[2ex]\hline
+&\\
+\Verb-\charge{[<パラメーター>]<場所>[<tikz>]}{<原子>}-&
+\Verb-<原子>-を描画し\Verb-<場所>-に従って電荷を配置します。
+電荷は\Verb-<原子>-のバウンディングボックスの外に置かれます。
+\pageref{charge}ページ参照\\
+\Verb-\Charge{[<パラメーター>]<場所>[<tikz>]}{<原子>}-&
+\verb|\charge|と同様ですが、電荷はバウンディングボックスに含まれます\\
+\Verb-\chemmove[<tikzオプション>]<tikzコード>-&
+\verb-tikzpicture-環境を作成し、\Verb-<tikzオプション>-を渡します。
+\Verb-<tikzコード>-に従って、文字``\verb-@-''によって定義された分子内のノード間を繋ぎます。\pageref{mecanismes-reactionnels}ページ参照\\[2ex]\hline
+&\\
+\Verb-\chemabove[<長さ>]{<テキスト1>}{<テキスト2>}- &
+\Verb-<テキスト1>-を描画し、その上方に\Verb-<テキスト2>-を\Verb-<長さ>-の垂直方向の距離をおいて配置します。
+このコマンドは\Verb-<テキスト1>-のバウンディングボックスを変更しません。\pageref{chemabove}ページ参照\\
+\Verb-\chembelow[<長さ>]{<テキスト1>}{<テキスト2>}- &
+\Verb-<テキスト1>-を描画し、その下方に\Verb-<テキスト2>-を\Verb-<長さ>-の垂直方向の距離をおいて配置します。
+このコマンドは\Verb-<テキスト1>-のバウンディングボックスを変更しません。\pageref{chemabove}ページ参照\\
+\Verb-\Chemabove[<長さ>]{<テキスト1>}{<テキスト2>}- &
+\Verb-<テキスト1>-を描画し、その上方に\Verb-<テキスト2>-を\Verb-<長さ>-の垂直方向の距離をおいて配置します。
+\pageref{chemabove}ページ参照\\
+\Verb-\Chembelow[<長さ>]{<テキスト1>}{<テキスト2>}- &
+\Verb-<テキスト1>-を描画し、その下方に\Verb-<テキスト2>-を\Verb-<長さ>-の垂直方向の距離をおいて配置します。
+\pageref{chemabove}ページ参照\\
+\Verb-\chemname[<長さ>]{<分子>}{<名前>}- & \Verb-<名前>-を\Verb-<分子>-の下に書きます。
+\pageref{chemname}ページ参照\\
+\falseverb\chemnameinit &
+名前の整列を正しく行うために使用する、分子の最大深さを初期化します。
+\pageref{chemnameinit}ページ参照
+\\[2ex]\hline
+&\\
+\falseverb\schemestart\dots\falseverb\schemestop& 反応式の開始および終了。\pageref{schemestart}ページ参照\\
+\falseverb\arrow&
+反応式内に矢印を描きます。（このコマンドは反応式内でのみ定義されています。）
+\pageref{arrow}ページ参照\\
+\falseverb\+ &
+反応式内に$+$記号を表示します。（このコマンドは反応式内でのみ定義されています。）
+\pageref{signe+}ページ参照\\
+\falseverb\subscheme\Verb-{<コード>}- &
+部分反応式を描きます。（このコマンドは反応式内でのみ定義されています。）
+\pageref{subscheme}ページ参照\\
+\falseverb\definearrow &
+矢印を定義します。\pageref{definearrow}ページ参照\\
+\Verb-\chemleft<car1><要素>-\falseverb\chemright\Verb-<car2>-&
+伸縮可能な区切り記号\Verb-<car1>-および\Verb-<car2>-をそれぞれ\Verb-<要素>-の左および右に配置します。
+\pageref{chemleft}ページ参照\\
+\Verb-\chemup<car1><要素>-\falseverb\chemdown\Verb-<car2>-&
+伸縮可能な区切り記号\Verb-<car1>-および\Verb-<car2>-をそれぞれ\Verb-<要素>-の上および下に配置します。
+\pageref{chemup}ページ参照\\
+\Verb|\polymerdelim[<設定>]{<ノード1>}{<ノード2>}|&
+指定されたノードに区切り記号を描きます。
+\pageref{polymerdelim}ページ参照\\\hline
+
+\end{longtable}
+\end{center}
+
+\part{ギャラリー}
+
+このマニュアルを締めくくるのは、さまざまな複雑さの分子の図です。
+
+好奇心旺盛なユーザーは各分子の\Verb-<コード>-に興味を持つかもしれませんが、分子が複雑になるほど魅力が薄れていきます。
+実際、ある程度の複雑さを超えると、\Verb-<コード>-を書くのは比較的簡単ですが、
+後になって\Verb-<コード>-読んで分析するのはかなり難しくなります。
+私たちは、複雑な図のコードの即時可読性の限界にすぐに達しました。
+
+ともかく、このパッケージが分子を描きたい全ての\LaTeX{}ユーザーに役立つことを願っています。
+\CF{}は徹底的にテストされており、バージョン番号は現在1.0を超えていますが、遭遇するバグに対して寛容でいていただけると幸いです。
+何か不具合や改善の提案があれば、\href{mailto:unbonpetit@netc.fr}{\texttt{\textbf{メール}}}を送って知らせてください。
+
+\hfill Christian \textsc{Tellechea}
+\bigskip
+
+\begin{center}
+\parskip0pt
+$\star$\par
+$\star\quad\star$
+\end{center}
+\bigskip
+
+\exemple*{2-メチルペンタン}/\chemfig{[7]H_3C-CH(-[6]CH_3)-[1]CH_2-CH_2-[1]CH_3}/
+
+\exemple*{3-エチル-2-メチルヘキサン}/\chemfig{H_3C-[7]CH(-[6]CH_3)-[1]CH(-[7]C_3H_7)-[2]CH_2-[3]H_3C}/
+
+\exemple*{ステアリン（示性式）}/\definesubmol{@}{([0,2]-O-[0,1]C(=[2,1]O)-C_{17}H_{35})}
+\chemfig{[2,2]CH_2!@-CH_{\phantom 2}!@-CH_2!@}/
+
+\exemple*{ステアリン（構造式）}/\definesubmol{x}{-[:+30,.6]-[:-30,.6]}
+\definesubmol{y}{-O-(=[2,.6]O)-!x!x!x!x!x!x!x!x}
+\chemfig{[2]([0]!y)-[,1.5]([0]!y)-[,1.5]([0]!y)}/
+
+\exemple*{2-メチルプロパン酸メチル}/\chemfig{H_3C-CH_2(-[2]CH_3)-C(=[1]O)-[7]O-CH_3}/
+
+\exemple*{バニリン}/\chemfig{HC*6(-C(-OH)=C(-O-[::-60]CH_3)-CH=C(-[,,,2]HC=[::-60]O)-HC=[,,2])} \quad または \quad
+\chemfig{*6(-(-OH)=(-OCH_3)-=(-=[::-60]O)-=)}/
+
+\exemple*{カフェイン}/\chemfig{*6((=O)-N(-CH_3)-*5(-N=-N(-CH_3)-=)--(=O)-N(-H_3C)-)}/
+
+\exemple*{アスピリン（アセチルサリチル酸）}/\chemfig{*6(-=-(-O-[::-60](=[::-60]O)-[::+60])=(-(=[::+60]O)-[::-60]OH)-=O)}/アスピリンは多くの国でバイエルの登録商標です。
+
+\exemple*{無水フタル酸}/\chemfig{*6(=*5(-(=O)-O-(=O)-)-=-=-)}/
+
+\exemple*{樟脳}/\chemfig{*6(-(<:[::120](-[::-100,0.7])(-[::100,0.7]))--(=O)-(-)(<:[::120])--)}
+\quad または \quad
+\setchemfig{cram width=3pt}
+\chemfig{<[:10](>[:85,1.8]?(-[:160,0.6])-[:20,0.6])
+>[:-10]-[:60](=[:30,0.6]O)-[:170]?(-[:30,0.6])-[:190]-[:240]}/
+
+\exemple*{トリフェニルメタン}/\chemfig{*6(-=-*6(-(-*6(=-=-=-))-*6(=-=-=-))=-=)}
+\quad または \quad
+\definesubmol{@}{*6(=-=-=-)}
+\chemfig{(-[:-30]!@)(-[:90]!@)(-[:210]!@)}/
+
+\exemple*{アミグダリン}/\setchemfig{cram width=2pt}
+\definesubmol{c1}{-[:200]-[:120]O-[:190]}
+\definesubmol{c2}{-[:170](-[:200,0.7]HO)<[:300](-[:170,0.6]HO)
+-[:10,,,,line width=2pt](-[:-40,0.6]OH)>[:-10]}
+\definesubmol{csub}{-[:155,0.65]-[:90,0.65]}
+\chemfig{O(!{c1}(!{csub}O(!{c1}(!{csub}OH)!{c2}))!{c2})-[:-30](-[:-90]CN)-[:30]*6(=-=-=-)}/
+
+\exemple*{アデノシン三リン酸}/\setchemfig{cram width=3pt}
+\definesubmol{a}{-P(=[::-90,0.75]O)(-[::90,0.75]HO)-}
+\chemfig{[:-54]*5((--[::60]O([::-60]!aO([::-60]!aO([::60]!aHO))))<(-OH)
+-[,,,,line width=2pt](-OH)>(-N*5(-=N-*6(-(-NH_2)=N-=N-)=_-))-O-)}/
+
+\exemple*{バイアグラ（シルデナフィル）}/\chemfig{N*6((-H_3C)---N(-S(=[::+120]O)(=[::+0]O)-[::-60]*6(-=-(-O-[::-60]-[::+60]CH_3)
+=(-*6(=N-*5(-(--[::-60]-[::+60]CH_3)=N-N(-CH_3)-=)--(=O)-N(-H)-))-=))---)}/
+
+\exemple*{コレステロールエステル}/\chemfig{[:30]R-(=[::+60]O)-[::-60]O-*6(--*6(=--*6(-*5(---(-(-[::+60]Me)
+-[::-60]-[::-60]-[::+60]-[::-60](-[::-60]Me)-[::+60]Me)-)-(-[::+0]Me)---)--)-(-[::+0]Me)---)}/
+
+\exemple*{ポルフィリン}/\chemfig{?=[::+72]*5(-N=(-=[::-72]*5(-[,,,2]HN-[,,2](=-[::-36]*5(=N-(=-[::-72]*5(-NH-[,,1]?=-=))
+-=-))-=-))-=-)}/
+
+\exemple*{マンガン 5,10,15,20-テトラキス(\textit{N}-エチル-3-カルバゾリル)ポルフィリン}/\definesubmol{A}{*6(=-*5(-*6(-=-=-)--N(--[::-60])-)=-=-)}
+\chemfig{([::+180]-!A)=[::+72]*5(-N=(-(-[::+54]!A)=[::-72]*5(-N(-[::-33,1.5,,,draw=none]Mn)
+-(=(-[::+72]!A)-[::-36]*5(=N-(=(-[::+54]!A)-[::-72]*5(-N-(-)=-=))-=-))-=-))-=-)}/
+
+\exemple*{ペニシリン}/\chemfig{[:-90]HN(-[::-45](-[::-45]R)=[::+45]O)>[::+45]*4(-(=O)-N*5(-(<:(=[::-60]O)
+-[::+60]OH)-(<[::+0])(<:[::-108])-S>)--)}/
+
+\exemple*{LSD}/\chemfig{[:150]?*6(=*6(--*6(-N(-CH_3)--(<(=[::+60]O)-[::-60]N(-[::+60]-[::-60])
+-[::-60]-[::+60])-=)([::-120]<H)---)-*6(-=-=-(-[::-30,1.155]\chembelow{N}{H}?)=))}/
+
+\exemple*{ストリキニーネ}/\chemfig{*6(=-*6(-N*6(-(=O)--([::-120]<:H)*7(-O--=?[0]([::-25.714]-[,2]?[1]))
+-*6(-?[0,{>}]--(<N?[1]?[2])-(<[::-90]-[::-60]?[2]))(<:[::+0]H)-([::+120]<H))--?)=?-=-)}/
+
+\exemple*{コデイン}/\chemfig{[:-30]**6(-(-O-[:180]H_3C)-?-*6(-(-[3]-[2,2]-[0,.5])*6(-(<:[:-150,1.155]O?)
+-(<:OH)-=-)-(<[1]H)-(-[2]NCH_3)--)---)}/
+
+\exemple*{染料（赤）}/\chemfig{**6(--*6(-(-NO_2)=-(-\charge{90=\|,-90=\|}{O}-[0]H)=(-\charge{180=\|}{N}=[0]\charge{90=\|}{N}-[0]Ar)-)----)}/
+
+\exemple*{メントン}/\chemfig{CH_3-?(-[2]H)(-[::-30,2]-[::+60](=[1]\charge{0=\|,90=\|}{O})
+-[::-150,1.5](-[:20]CH(-[1]CH_3)(-[7]CH_3))(-[6]H)-[::-90,2]-[::+60]?)}/
+
+\exemple*{フラーレン}/\definesubmol\fragment1{
+	(-[:#1,0.85,,,draw=none]
+	-[::126]-[::-54](=_#(2pt,2pt)[::180])
+	-[::-70](-[::-56.2,1.07]=^#(2pt,2pt)[::180,1.07])
+	-[::110,0.6](-[::-148,0.60](=^[::180,0.35])-[::-18,1.1])
+	-[::50,1.1](-[::18,0.60]=_[::180,0.35])
+	-[::50,0.6]
+	-[::110])
+}
+\chemfig{
+	!\fragment{18}
+	!\fragment{90}
+	!\fragment{162}
+	!\fragment{234}
+	!\fragment{306}
+}/% https://tex.stackexchange.com/questions/506293/how-to-draw-a-fullerene
+
+\exemple*{フィッシャー インドール合成}/\schemestart
+	\chemfig{*6(=-*6(-\chembelow{N}{H}-NH_2)=-=-)}
+	\+
+	\chemfig{(=[:-150]O)(-[:-30]R_2)-[2]-[:150]R_1}
+	\arrow(.mid east--.mid west){->[\chemfig{H^+}]}
+	\chemfig{*6(-=*5(-\chembelow{N}{H}-(-R_2)=(-R_1)-)-=-=)}
+\schemestop/
+
+\exemple*{反応機構：カルボニル基}/\schemestart
+	\chemfig{C([3]-)([5]-)=[@{db,.5}]@{atoo}\charge{0=\|,-90=\|}{O}}
+	\arrow(.mid east--.mid west){<->}
+	\chemfig{\charge{90:3pt=$\scriptstyle\oplus$}{C}([3]-)([5]-)-%
+		\charge{0=\|,90=\|,-90=\|,45:3pt=$\scriptstyle\ominus$}{O}}
+\schemestop
+\chemmove{\draw[shorten <=2pt, shorten >=2pt](db) ..controls +(up:5mm) and +(up:5mm)..(atoo);}/
+
+\exemple*{反応機構：ニトロ基}/\schemestart
+	\chemfig{R-\charge{225:3pt=$\scriptstyle\oplus$}{N}([1]=[@{db}]@{atoo1}O)([7]-[@{sb}]@{atoo2}
+	\charge{45=\|,-45=\|,-135=\|,45:5pt=$\scriptstyle\ominus$}{O})}
+	\arrow(.mid east--.mid west){<->}
+	\chemfig{R-\charge{135:3pt=$\scriptstyle\oplus$}{N}([1]-\charge{90:3pt=$\scriptstyle\ominus$}{O})([7]=O)}
+\schemestop
+\chemmove{
+	\draw[shorten <=2pt, shorten >=2pt](db) ..controls +(120:5mm) and +(120:7mm)..(atoo1);
+	\draw[shorten <=3pt, shorten >=2pt](atoo2) ..controls +(225:10mm) and +(225:10mm)..(sb);
+}/
+
+\exemple*{求核付加反応：第一級アミン}/\setchemfig{atom sep=2.5em,compound sep=5em}
+\schemestart
+	\chemfig{R-@{aton}\charge{90=\|}{N}H_2}
+	\+
+	\chemfig{@{atoc}C([3]-CH_3)([5]-CH_3)=[@{atoo1}]O}
+	\chemfig{@{atoo2}\chemabove{H}{\scriptstyle\oplus}}
+	\chemmove[-stealth,shorten <=3pt,dash pattern= on 1pt off 1pt,thin]{
+		\draw[shorten >=2pt](aton) ..controls +(up:10mm) and +(left:5mm)..(atoc);
+		\draw[shorten >=8pt](atoo1) ..controls +(up:10mm) and +(north west:10mm)..(atoo2);}
+	\arrow{<=>[\tiny 付加]}
+	\chemfig{R-@{aton}\chembelow{N}{\scriptstyle\oplus}H([2]-[@{sb}]H)-C(-[2]CH_3)(-[6]CH_3)-OH}
+\schemestop
+\chemmove{
+	\draw[-stealth,dash pattern= on 1pt off 1pt,shorten <=3pt, shorten >=2pt]
+	(sb)..controls +(left:5mm) and +(135:2mm)..(aton);}
+\par
+\schemestart
+	\arrow{<=>}
+	\chemfig{R-@{aton}\charge{90=\|}{N}([6]-[@{sbh}]H)-[@{sb}]C(-[2]CH_3)(-[6]CH_3)-[@{sbo}]@{atoo}
+	\chemabove{O}{\scriptstyle\oplus}(-[1]H)(-[7]H)}
+	\chemmove[-stealth,shorten <=3pt,shorten >=2pt,dash pattern= on 1pt off 1pt,thin]{
+		\draw(aton) ..controls +(up:5mm) and +(up:5mm)..(sb);
+		\draw(sbh) ..controls +(left:5mm) and +(south west:5mm)..(aton);
+		\draw(sbo) ..controls +(up:5mm) and +(north west:5mm)..(atoo);}
+	\arrow{<=>[\tiny 脱離]}\chemfig{R-N=C(-[1]CH_3)(-[7]CH_3)}
+	\+
+	\chemfig{H_3\chemabove{O}{\scriptstyle\oplus}}
+\schemestop/
+
+\exemple*{反応式}/\setchemfig{atom sep=2em}
+\schemestart[-90]
+	\chemfig{**6(---(-NH _2)---)}\arrow{0}\chemfig{HNO_2}
+	\merge(c1)(c2)--()
+	\chemfig{**6(---(-N_2|{}^\oplus)---)}\arrow{0}\chemfig{**6(---(-NH _2)---)}
+	\merge(c3)(c4)--()
+	\chemfig{**6(---(-N=[::-30]N-[::-30]**6(---(-NH_2)---))---)}
+\schemestop/
+
+\exemple*{付加反応}/\setchemfig{atom sep=2.5em}
+\schemestart
+	\chemfig{*6(=-(-)(=[2]O))}
+	\arrow{->[\+\chemfig{H^\oplus}]}
+	\chemleft[\subscheme[90]{%
+		\chemfig{*6((-[2,0.33,,,draw=none]\scriptstyle\oplus)-=(-)-OH)}
+		\arrow{<->}
+		\chemfig{*6(=-(-)(-[6,0.33,,,draw=none]\scriptstyle\oplus)-OH)}}\chemright]
+	\arrow(@c3--)\chemfig{*6((-[2]R)-=(-)-OH)}
+	\arrow(@c4--)\chemfig{*6(=-(-)(-[6]R)-OH)}
+\schemestop/
+
+\exemple*{芳香族求電子置換反応}Z\setchemfig{atom sep=1.5em}%
+\definesubmol{+}{-[,-0.4,,,draw=none]\oplus}%
+\schemestart
+	\arrow{0}[,0]
+	\chemleft[\subscheme{\chemfig{*6(=-=-(-[:120]Br)(-[:60]H)-(!+)-)}
+		\arrow{<->}
+		\chemfig{*6(-(!+)-=-(-[:120]Br)(-[:60]H)-=)}
+		\arrow{<->}
+		\chemfig{*6(-=-(!+)-(-[:120]Br)(-[:60]H)-=)}}\chemright]
+	\arrow(@c2--){<-[*0\chemfig{{-}AlBr_4|^\ominus}][*0\chemfig{Br_2/Al_2Br_6}]}[90,1.5]
+	\chemname{\chemfig{*6(-=-=-=-)}}{ベンゼン 1}
+	\arrow(@c4--){->[*0\chemfig{{-}H^\oplus}]}[90,1.5]
+	\chemname{\chemfig{*6(-=-=(-Br)-=-)}}{ブロモベンゼン 2}
+	\arrow(@c5.mid east--@c6.mid west)
+\schemestop
+\chemnameinit{}Z
+
+\exemple*{塩素化の反応機構}/\scriptsize\setchemfig{bond offset=1pt,atom sep=2em,compound sep=4em}
+\schemestart
+	\chemfig{Cl-[4]@{a0}(=[@{a1}:120]@{a2}O)-[:-120](=[:-60]O)-[4]Cl}\+\chemfig{*6(-=-=(-@{oh1}OH)-=)}\arrow
+	\chemfig{*6((-O-[:150](-[@{o0}:150]@{o1}\charge{-90=\.}{O})(-[@{cl0}:60]@{cl1}Cl)-[:240](-[4]Cl)=[6]O)=-=-=-)}
+	\arrow\chemfig{*6((-O-[:150](=[2]O)-[:-150](=[6]O)-[:150]Cl)=-=-=-)}\+\chemfig{HCl}
+	\arrow(@c1--){0}[-90,0.5]
+	\chemfig{*6(-=*6(-O-*6(-@{o2}(=[@{o3}]@{o4}O)-Cl)(=[::60]O))-=-=)}\+\chemfig{*6(-=-=(-@{oh2}OH)-=)}\arrow
+	\chemfig{*6(-=*6(-O-(-(-[@{cl2}:60]@{cl3}Cl)(-[@{o5}:-120]@{o6}\charge{-90=\.}{O})-O-[::-40]*6(=-=-=-))(=[::60]O))-=-=)}
+	\kern-3em \arrow\chemfig{[:30]*6(=-(-O-[:-60](=O)-[:-120](=[4]O)-[:-60]O-*6(=-=-=-))=-=-)}
+	\kern-3em \+\chemfig{HCl}
+\schemestop
+\chemmove[line width=0.2pt,-stealth,dash pattern = on 2pt off 1pt]{
+	\draw[shorten <=2pt](a1)..controls+(200:5mm)and+(200:5mm)..(a2);
+	\draw[shorten >=2pt](oh1.west)..controls+(180:15mm)and+(60:5mm)..(a0);
+	\draw[shorten <=6pt,shorten >=2pt](o1)..controls+(270:5mm)and+(270:5mm)..(o0);
+	\draw[shorten <=2pt](cl0)..controls+(150:5mm)and+(150:5mm)..(cl1.150);
+	\draw[shorten <=2pt](o3)..controls +(30:3mm) and +(30:5mm)..(o4.east);
+	\draw[shorten >=2pt](oh2.135).. controls +(150:10mm) and +(90:10mm).. (o2);
+	\draw[shorten >=2pt,shorten <=5pt]([xshift=-1.5mm]o6.315)..controls +(315:5mm) and +(315:5mm)..(o5);
+	\draw[shorten <=2pt](cl2)..controls +(135:5mm) and +(135:5mm)..(cl3.north west);}/
+
+\exemple*{カニッツァーロ反応}/\schemestart
+	\chemfig{[:-30]*6(=-=(-@{atoc}C([6]=[@{db}]@{atoo1}O)-H)-=-)}
+	\arrow(start.mid east--.mid west){->[\chemfig{@{atoo2}\chemabove{O}{\scriptstyle\ominus}}H]}
+	\chemmove[-stealth,shorten >=2pt,dash pattern=on 1pt off 1pt,thin]{
+			\draw[shorten <=8pt](atoo2) ..controls +(up:10mm) and +(up:10mm)..(atoc);
+			\draw[shorten <=2pt](db) ..controls +(left:5mm) and +(west:5mm)..(atoo1);}
+	\chemfig{[:-30]*6(=-=(-C([6]-[@{sb1}]@{atoo1}\chembelow{O}{\scriptstyle\ominus})([2]-OH)-[@{sb2}]H)-=-)}
+	\hspace{1cm}
+	\chemfig{[:-30]*6((-@{atoc}C([6]=[@{db}]@{atoo2}O)-[2]H)-=-=-=)}
+	\chemmove[-stealth,shorten <=2pt,shorten >=2pt,dash pattern=on 1pt off 1pt,thin]{
+			\draw([yshift=-4pt]atoo1.270) ..controls +(0:5mm) and +(right:10mm)..(sb1);
+			\draw(sb2) ..controls +(up:10mm) and +(north west:10mm)..(atoc);
+			\draw(db) ..controls +(right:5mm) and +(east:5mm)..(atoo2);}
+	\arrow(@start.base west--){0}[-75,2]
+	{}
+	\arrow
+	\chemfig{[:-30]*6(=-=(-C([1]-@{atoo2}O-[@{sb}0]@{atoh}H)([6]=O))-=-)}
+	\arrow{0}
+	\chemfig{[:-30]*6((-C(-[5]H)(-[7]H)-[2]@{atoo1}\chemabove{O}{\scriptstyle\ominus})-=-=-=)}
+	\chemmove[-stealth,shorten >=2pt,dash pattern=on 1pt off 1pt,thin]{
+			\draw[shorten <=7pt](atoo1.90) ..controls +(+90:8mm) and +(up:10mm)..(atoh);
+			\draw[shorten <=2pt](sb) ..controls +(up:5mm) and +(up:5mm)..(atoo2);}
+\schemestop/
+
+\begingroup
+\catcode`;=12
+\exemple*{ベックマン転位}/\setchemfig{bond offset=1pt,atom sep=2.5em,compound sep=5em,arrow offset=6pt}
+\schemestart
+	\chemfig{(-[:-150]R')(-[:-30]R)=[2]N-[:30]OH}
+	\arrow{<=>[\chemfig{H^\oplus}]}
+	\chemfig{(-[@{a0}:-150]R')(-[:-30]R)=[2]@{a1}N-[@{b0}:30]@{b1}\chemabove{O}{\scriptstyle\oplus}H_2}
+	\chemmove[red,-stealth,red,shorten <=2pt]{
+		\draw(a0)..controls +(135:2mm) and +(215:4mm).. (a1);
+		\draw(b0)..controls +(120:2mm) and +(180:3mm).. ([yshift=7pt]b1.180);}
+	\arrow{<=>[\chemfig{{-}H_2O}]}[,1.1]
+	\chemleft[\subscheme[90]{%
+		\chemfig{R'-\chemabove{N}{\scriptstyle\oplus}~C-R}
+		\arrow{<->}[,0.75]
+		\chemfig{R'-\charge{90=\:}{N}=@{a1}\chemabove{C}{\scriptstyle\oplus}-R}}\chemright]
+	\arrow{<=>[\chemfig{H_2@{a0}\charge{0=\:,90=\:}{O}}]}[,1.1]
+	\chemmove[red,-stealth,red,shorten <=3pt]{
+		\draw(a0)..controls+(90:10mm)and+(45:10mm)..([yshift=6pt]a1.45);}
+	\arrow(@c1--){0}[-90,0.333]
+	\chemfig{*6(R\rlap{$'$}-N=(-R)-\chemabove{O}{\scriptstyle\oplus} H_2)}
+	\arrow{<=>[\chemfig{{-}H^\oplus}]}
+	\chemfig{*6(R\rlap{$'$}-N=(-R)-OH)}
+	\arrow
+	\chemfig{*6(R\rlap{$'$}-\chembelow{N}{H}-(-R)(=[2]O))}
+\schemestop/
+\endgroup
+
+\exemple*{反応式}/\setchemfig{atom sep=1.5em,compound sep=4em}
+\schemestart
+	\chemfig{-[::30]=_[::-60](-[:: -60])-[::60]}
+	\arrow{->[\chemfig{HCl}]}
+	\chemfig{-[::30]-[::-60](-[::120]Cl)(-[::-60])-[::60]}\+\chemfig{-[::30](-[::60]Cl)-[::-60](-[::-60])-[::60]}
+	\arrow(@c1--.north west){->[\chemfig{H_2O}]}[-45,1.7]
+	\chemfig{-[::30]-[::-60](-[::120]OH)(-[::-60])-[::60]}\+\chemfig{-[::30](-[::60]OH)-[::-60](-[::-60])-[::60]}
+\schemestop/
+
+\exemple*{ギ酸のエステル化}Z\tikzset{obrace/.style={left delimiter={[},inner sep=3pt},
+	cbrace/.style={right delimiter={]},inner sep=3pt},
+	braces/.style={left delimiter={[},right delimiter={]},inner sep=3pt}}
+\setchemfig{atom sep=2em}
+\schemestart
+	\chemfig{H-C(=[:60]O)-[:-60]O-H}
+	\arrow(--M1[obrace]){-U>[\scriptsize\chemfig{H_2SO_4^{}}][\scriptsize\chemfig{HSO_4^\ominus}][][.25]}%
+		[,1.5]
+	\chemfig{H-@{a2}C(-[:60]O-H)(-[:30,.5,,,draw=none]{\scriptstyle\oplus})-[:-60]O-H}
+	\arrow(--[cbrace]){<->}
+	\chemfig{H-C(=[:60]\chemabove{O}{\scriptstyle\oplus}-H)-[:-60]O-H}
+	\arrow(@M1--){<=>[*{0}\scriptsize\chemfig{H-[:120]@{a1}O-[:60]CH_3}][*{0}\tiny 付加]}[-90,1.33]
+	\chemfig{H-C(-[2]O-[:30]H)(-\chemabove{O}{\scriptstyle\oplus}(-[:60]CH_3)-[:-60]H)-[6]O-[:-30]H}
+	\arrow{<=>[\tiny プロトン化]}[180]
+	\chemfig{H-C(-[2]O-[:30]H)(-O-CH_3)-[@{b1}6]@{a3}\chemabove{O}{\kern-4mm\scriptstyle\oplus}(-[:-150]H)-[:-30]H}
+	\arrow(--[obrace]){<=>[*{0}\scriptsize\chemfig{{-}H_2O}][*{0}\tiny 脱離]}[-90,,{shorten >=2pt, shorten <=2pt}]
+	\chemfig{H-C(-[:60]O-H)(-[,.5,,,draw=none]{\scriptstyle\oplus})-[:-60]O-CH_3}
+	\arrow(--[cbrace]){<->}
+	\chemfig{H-C(=[:60]\chemabove{O}{\scriptstyle\oplus}-H)-[:-60]O-CH_3}
+	\arrow{-U>[\scriptsize\chemfig{HSO_4^\ominus}][\scriptsize\chemfig{H_2SO_4^{}}][][.25]}[,1.5]
+	\chemfig{H-C(=[:60]O)-[:-60]O-CH_3}
+	\arrow(@M1--[yshift=-5pt]){0}[180,.5]{\tiny プロトン化}
+	\chemmove[red,shorten <=3pt,shorten >=1pt]{
+		\draw(a1)..controls +(0:1.5cm)and+(0:3cm).. (a2);
+		\draw(b1)..controls +(0:5mm)and+(20:5mm)..(a3);}
+\schemestop Z
+
+\exemple*{オレフィンへのハロゲンの求電子付加}/\schemestart
+	\subscheme{%
+		\chemfig{C(<[:40])(<[:160])=[6]C(<[:-130])<[:-20]}
+		\arrow{0}[,0]\+\chemfig{\charge{90=\|,180=\|,270=\|}{Br}-\charge{90=\|,0=\|,270=\|}{Br}}}
+	\arrow(@c1--olefin){<=>[*{0}速い]}[-90]
+	\chemfig{>[:-20]C(<[:40])=[@{db}6]C(<[:-130])<[:-20]}
+	\arrow(--bromonium){0}[-90]
+	\chemname{\chemfig{C*3((<)(<:[:-155])-\charge{45=\|,-45=\|,180:3pt=$\scriptstyle\oplus$}{Br}-C(<:)(<[:155])-)}}
+		{ブロモニウムイオン}
+	\arrow(--carbeniumA){<<->}[,1.5]
+	\chemname{\chemfig{-[:-30]\chemabove{C}{\scriptstyle\oplus}(-[:30])-[6]C(<:[:-150])(<[:-100])-[:-30]
+		\charge{45=\|,-45=\|,225=\|}{Br}}}{カルベニウムイオン}
+	\arrow(@bromonium--carbeniumB){<<->}[180,1.5]
+	\chemname{\chemfig{-[:-30]\chemabove{C}{\scriptstyle\oplus}(-[:30])-[6]C(<[:-150])
+		(<:[:-100])-[:-30]\charge{45=\|,-45=\|,135=\|}{Br}}}{カルベニウムイオン}
+	\arrow(@olefin--){0}[,.25]
+	\chemfig{@{Br1}\charge{90=\|,180=\|,270=\|,90:5pt=$\scriptstyle\delta\oplus$}{Br}-[@{b2}]@{Br2}
+		\charge{90=\|,0=\|,270=\|,90:5pt=$\scriptstyle\delta\ominus$}{Br}}
+	\arrow(@olefin--[left]){0}[180,0]
+	$\pi$錯体
+	\arrow(@carbeniumA--@olefin){<=>[遅い, \chemfig{{-}Br^\ominus}]}
+	\arrow(@carbeniumB--@olefin){<=>[遅い, \chemfig{{-}Br^\ominus}]}
+	\chemmove[-stealth,red,shorten <=3pt,shorten >=2pt]{
+		\draw(db) .. controls +(20:5mm) and +(135:5mm) .. (Br1);
+		\draw(b2) .. controls +(-90:5mm) and +(-120:5mm) .. (Br2);}
+\schemestop
+\chemnameinit{}/
+
+\exemple*{ナフタレンのスルホン化}/\definesubmol\cycleoplus{-[,0.25,,,draw=none]\oplus}
+\definesubmol{so2oh}{S(=[::90]O)(=[::-90]O)-OH}
+\setchemfig{atom sep=2.5em}
+\schemestart[,1.5]
+	\chemname{\chemfig{*6(=-*6(-=-=-)=-=-)}}{ナフタレン}\+\chemfig{H_2SO_4}
+	\arrow(nph.mid east--.south west){->[80\degres C]}[45]
+	\chemname{\chemfig{*6(=-*6(-=-(!\cycleoplus)-(-SO_3H)-)=-=-)}}{1-アレニウムイオン}
+	\arrow(.mid east--.mid west)
+	\chemname{\chemfig{*6(=-*6(-=-=(-!{so2oh})-)=-=-)}}{1-ナフタレンスルホン酸}
+	\arrow(@nph.mid east--.north west){->[160\degres C]}[-45]
+	\chemname{\chemfig{*6(=-*6(-=-(-SO_3H)-(!\cycleoplus)-)=-=-)}}{2-アレニウムイオン}\kern-4em
+	\arrow(.mid east--.mid west)
+	\chemname{\chemfig{*6(=-*6(-=-(-!{so2oh})=-)=-=-)}}{2-ナフタレンスルホン酸}
+\schemestop
+\chemnameinit{}/
+
+\exemple*{タキソテール（ドセタキセル）}/\chemfig{-[::-30](-[5])(-[7])-[::+60]-[::-60]O-[::+60](=[::-45]O)-[::+90]HN>:[::-60](-[::+60]**6(------))
+-[::-30](<:[2]OH)-[::-60](=[6]O)-[::+60]O>:[::-60]*7(---?(<[::-120]OH)-(<|[1]CH_3)(<:[::-90]CH_3)
+-(-[1](<[::+80]HO)-[0](=[::+60]O)-[7](<|[::+130]CH_3)(-[::+75](<|[2]OH)-[::-60]-[::-60](<[::+30]O-[::-90])
+-[::-60](<[::+90])(<:[::+30]O-[7](-[6]CH_3)=[0]O)-[::-60])-[6]-[5,1.3]?(<:[7]O-[5](=[::-60]O)
+-[6]**6(------)))=(-[2]CH_3)-)}/
+
+% https://tex.stackexchange.com/questions/673490/diverging-arrow-in-chemfig/673572#673572
+\exemple*{分岐する矢印}/\schemestart
+	\chemfig{(-[:210]R_2)(-[:330]R_1)=[2]O}
+	\arrow(a--)[,1.5,,,draw=none]
+	\subscheme{
+		\charge{30:4pt=$\mathrm{S}_1$}{\chemleft{[}\chemfig{(-[:210]R_2)(-[:330]R_1)=[2]O}\chemright{]}}
+		\arrow(b--c){->[*{0}ISC]}[-90,1.5]
+		\charge{30:4pt=$\mathrm{T}_1$}{\chemleft[\chemfig{(-[:210]R_2)(-[:330]R_1)=[2]O}\chemright{]}}
+	}
+	\arrow(--d)[,1.5,,,draw=none]
+	\chemfig{(-[:210]R_2)(-[:330,0.1,,,draw=none]\charge{330:-1pt=\.\,}{})=[2]O}
+	\+
+	\chemfig{\charge{90:1pt=\.\,}{R}_1}
+	\schemestop
+\chemmove{
+	\draw[thick,shorten >=10pt] (a.east) -- ++(1,0) |- (b.west);
+	\draw[thick,shorten >=10pt] (a.east) -- ++(1,0) |- (c.west);
+	\draw[-,thick,shorten >=15pt,shorten <=8pt] (b.east) -- ++(1.3,0) |- (d.west);
+	\draw[thick,shorten >=10pt,shorten <=8pt] (c.east) -- ++(1.3,0) |- (d.west);
+}/
+
+\end{document}
