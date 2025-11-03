@@ -129,16 +129,41 @@
 \edef\CFjapdate{\expandafter\CFjapdate@i\CFdate\@nil}
 
 \DeclareRobustCommand\CF{%
-  \texorpdfstring{%
-	\textsf{%
-		chem%
-		\if\string b\detokenize\expandafter{\f@series}%
-			\lower0.01em\hbox{\itshape f}\kern-0.06em
-		\else
-			\lower0.048em\hbox{\kern-0.04em \itshape f}\kern0.03em
-		\fi ig%
-		}%
-		\xspace}{chemfig}}
+  \texorpdfstring{\textsf{chem{\itshape fig}}\xspace}{chemfig}}
+
+\def\CF@log@date#1{\CF@log@date@a#1\@nil}
+\def\CF@log@date@a#1/#2/#3\@nil{#3/#2/#1}
+\begingroup
+	\catcode`\! 13 \catcode`\<13 \catcode`\>13
+	\gdef\CFchangelog@verb{%
+		\ifvmode\leavevmode\fi
+		\hbox\bgroup
+			\verb@eol@error \let\do\@makeother \dospecials
+			\verbatim@font\@noligs
+			\catcode`\<13 \catcode`\>13
+			\def<{\begingroup$\langle$\itshape}\def>{\/$\rangle$\endgroup}%
+			\catcode32 10
+			\ttfamily
+			\CFchangelog@verb@a
+	}%
+	\gdef\CFchangelog@verb@a#1!{%
+			#1%
+		\egroup}%
+	\gdef\CFchangelog#1#2{%
+		\paragraph{Version \@gobble#1 du \CF@log@date{#2}}
+		\par
+		\begingroup
+			\catcode`\! 13
+			\let!\CFchangelog@verb
+			\small
+			\begin{itemize}
+	}
+\endgroup
+\def\endCFchangelog{%
+		\end{itemize}
+	\endgroup
+}
+
 \makeatother
 
 \usepackage{luatexja-fontspec}
@@ -177,7 +202,11 @@
 \newcommand*\CFkey[1]{{\color{teal}\texttt{\detokenize{#1}}}}
 \newcommand*\CFval[1]{{\color{teal}\textlangle\textit{#1}\textrangle}}
 \newcommand*\CFkv[2]{\CFkey{#1}{\color{teal}${}={}$}\CFval{#2}}
-\newcommand*\CFparam[1]{\CFkey{#1}&\ifcat\relax\detokenize\expandafter\expandafter\expandafter{\useKV[chemfig]{#1}}\relax \textlangle\textit{空}\textrangle\else\texttt{\detokenize\expandafter\expandafter\expandafter{\useKV[chemfig]{#1}}}\fi\\}
+\newcommand*\CFparam[2]{%
+	\CFkey{#1}&%
+	\ifcat\relax\detokenize\expandafter\expandafter\expandafter{\useKV[chemfig]{#1}}\relax \textlangle\textit{空}\textrangle\else\texttt{\detokenize\expandafter\expandafter\expandafter{\useKV[chemfig]{#1}}}\fi&%
+	#2\\%
+}
 \newcommand*\Chargeparam[1]{\CFkey{#1}&\ifcat\relax\detokenize\expandafter\expandafter\expandafter{\useKV[charge]{#1}}\relax \textlangle\textit{空}\textrangle\else\texttt{\detokenize\expandafter\expandafter\expandafter{\useKV[charge]{#1}}}\fi}
 \newcommand*\CFdelimparam[1]{\CFkey{#1}&\ifcat\relax\detokenize\expandafter\expandafter\expandafter{\useKV[CFdelimiters]{#1}}\relax \textlangle\textit{空}\textrangle\else\texttt{\detokenize\expandafter\expandafter\expandafter{\useKV[CFdelimiters]{#1}}}\fi}
 
@@ -186,6 +215,7 @@
 \csname @addtoreset\endcsname{section}{part}
 \usepackage{titlesec}
 \titleformat{\part}[display]{\normalfont\filcenter\sffamily\bfseries}{}{0pt}{\Huge}
+\titleformat{\paragraph}{\normalfont\bfseries}{}{}{}
 
 \renewcommand{\headfont}{\gtfamily\rmfamily\bfseries}
 
@@ -193,7 +223,7 @@
 
 \def\CFjapsettablearraystretch{\renewcommand{\arraystretch}{0.875}}% 14/16
 \newlength{\CFjaptabularbaselineskip}
-\setlength{\CFjaptabularbaselineskip}{.875\baselineskip}
+\setlength{\CFjaptabularbaselineskip}{.8125\baselineskip}
 
 \AddToHook{cmd/part/before}{\clearpage}
 
@@ -258,52 +288,43 @@
 \tableofcontents
 \parskip\medskipamount
 
-\setitemize{leftmargin=3em,topsep=0pt,parsep=0pt,itemsep=0pt}
+\setitemize{leftmargin=3em,topsep=0pt,parsep=0pt,itemsep=1.5pt}
 \part{はじめに}
+\section{バージョン1.7における変更点}
+変更履歴は今後\verb|chemfig.tex|ファイルの末尾ではなく、このマニュアルの末尾に記載されます。
+詳細は\pageref{changelogs}ページを参照してください。これは英語に翻訳されません。
 
-\section{バージョン1.6における変更点}
-\subsection{ルイス構造式}
-2020年3月5日公開のバージョン1.5から通知していた通り、非推奨だったマクロ\verb|\lewis|および\verb|\Lewis|は\CF{}パッケージで削除されました。
-ルイス構造式を描画するには\verb|\charge|および\verb|\Charge|の使用が推奨されます（\pageref{charge}ページ参照）。
+\subsection{水平方向の反応}
+水平方向の反応を描くための新しい環境が実装されました。
+\begin{center}
+	\leavevmode
+	\vtop{%
+		\hbox{\Verb|\hreac[<キーワード>=<値>のリスト]|}\kern1.25ex
+		\hbox{\Verb|    <反応>|}\kern1.25ex
+		\hbox{\verb|\endhreac|}
+	}
+\end{center}
 
-マクロ\verb|\lewis|および\verb|\Lewis|の使用が不可欠な場合は、\CF{}パッケージを読み込んだ後に\verb|\input|を使って\verb|chemfig-lewis.tex|を読み込んでください。
-\subsection{debugキーワード}
-ブール値を取るキーワード\CFkey{debug}が新設されました。デフォルト値はfalseです。
-trueに設定された場合は、各原子グループの（矩形の）輪郭が赤で、それぞれの原子の輪郭が灰色で描かれます。
-原子グループの番号は赤い四角形の上に表示され、各原子の番号も同様に表示されます。（原子の番号は1から始まり、左から右へ付けられます。）
-この番号によって、各原子のノード名を\verb|n<a>-<b>|の形式で知ることができます。
-ここで\verb|<a>|は原子グループの番号、\verb|<b>|は原子の番号です。
+この環境でできることは \Verb|\schemestart <反応> \schemestop|でできることよりかなり少ないですが、いくつかの高度な機能を維持しつつ、
+水平方向の反応式をより素早く描くことができます。\pageref{hreac}ページを参照してください。
 
-次の例では、青い矢印が原子\verb|n1-3|、つまり``C2''から出て、原子\verb|n2-4|つまり``Gz''に入ります。
+\subsection{内部の変更}
+内部的な変更がいくつか行われました。
+\begin{itemize}
+\item バージョン1.7以降、デフォルトでは直前の原子の支柱（strut）は\verb|\printatom|の引数に加えられなくなりました。
+  これにより原子の配置がわずかに変わる場合があります。
+  \CFkv{use atom strut}{true}とすることで以前の動作に戻すことができます。
+  \pageref{liaisonentreatomes}ページを参照してください。
 
-\exemple{ノード名}/\setchemfig{debug=true}
-\chemfig{A1BC2-[:30]DxEyFGz-H3I}
-\chemmove{\draw[blue](n1-3)to[out=75,in=90](n2-4);}/
+\item \CFkv{use atom strut}{false}と設定されたとき（これがデフォルトの動作です）、
+  各原子は一度だけ組版されます。以前は5回以上組まれることがありました。
 
-\subsection{反応式中の\texttt\#{}トークン}
-反応式を書く際、\verb|\chemfig|マクロの引数の中に\verb|#|トークンを使うことができるようになりました。
-\pageref{modif.retrait}ページを参照してください。
+  内部のマクロが修正されました。
+\end{itemize}
 
-\subsection{gchemnameキーワード}
-
-このキーワードは\verb|\chemnameinit|および\verb|\chemname|における最大の深さをグローバルに保存するかローカルに保存するかを指定します。
-デフォルト値はtrueです。
-
-\subsection{``schemestart code''キーワードと``schemestop code''キーワード}
-
-これら2つのキーワードに含まれる値（デフォルトでは空）は、それぞれ反応式の最初と最後に実行されます。
-入れ子の反応式内では実行されません。
-
-例えば\verb|schemestart code=\chemnameint{}|と書くことで、各反応式の開始時に名前の深さをリセットできます。
-
-\subsection{``baseline''キーワード}
-
-このキーワードに値を設定することで、分子の垂直位置を調整できます。
-\pageref{baseline}ページを参照してください。
-
-\subsection{くさび形結合の接合}
-\CFkey{bond join}を\CFval{true}にすると、くさび形結合が別のくさび形結合あるいは別の単結合と連結する際に、よりきれいに描画されます。
-\pageref{joinCram}ページを参照してください。
+\textbf{\color{red}重要}：一貫性を保つため、次期バージョンの\CF{}では\verb|\schemestart|の文法が変更されます。
+これまでの2つのオプション引数は削除され、\Verb|<キーワード>=<値>|形式のリストを取る単一のオプション引数に置き換えられます。
+これまで2つのオプション引数で指定されていた設定は、新しい \Verb|<キーワード>|で設定できるようになります。
 
 \section{\protect\CF{}を使う}
 \CF{}パッケージを使うには、以下の行をプリアンブルに追加します。
@@ -314,11 +335,11 @@ trueに設定された場合は、各原子グループの（矩形の）輪郭�
 
 いずれの場合も、もしまだ読み込まれていなければ、\CF{}が\TIKZ{}パッケージを読み込みます。
 
-分子描画のための最も重要なコマンドは\Verb|\chemfig{<コード>}|です。
-引数\Verb|<コード>|は分子構造を記述する文字列であり、その規則についてはこのマニュアルで説明します。
+分子描画のための最も重要なコマンドは \Verb|\chemfig{<コード>}|です。
+引数 \Verb|<コード>|は分子構造を記述する文字列であり、その規則についてはこのマニュアルで説明します。
 
 シンプルで柔軟かつ直感的な構文を維持しながら、可能な限り多くの分子形状を描画できるように配慮されています。
-それでもなお、分子の二次元構造を記述する\Verb-<コード>-の複雑さは、描こうとする分子の複雑さに比例します。
+それでもなお、分子の二次元構造を記述する \Verb-<コード>-の複雑さは、描こうとする分子の複雑さに比例します。
 
 \verb|\chemfig|コマンドは\verb|tikzpicture|環境内に、\TIKZ{}パッケージが提供するコマンドを使って分子を描画します。
 \TIKZ{}を使用していることから、以下のような特徴を持ちます。
@@ -358,62 +379,38 @@ pdf\LaTeX{}では\falseverb{dvi モード}（tex $\longrightarrow$ dvi $\longrig
 \end{center}
 角括弧内のオプション引数はこの分子の描画に使用するパラメーターを設定します。
 パラメーターは現在の分子に対してのみ変更され、マクロ実行後は以前の値に戻ることに注意が必要です。
-パラメーターを永続的に変更したい場合は\Verb|\setchemfig{<キーワード>=<値>}|マクロを使用してください。
+パラメーターを永続的に変更したい場合は \Verb|\setchemfig{<キーワード>=<値>}|マクロを使用してください。
 
-以下にパラメーターの完全なリストとデフォルト値を示します\label{listeparametres}。
-なお、リスト末尾にある\CFkey{scheme debug}以降の\chevrons{キーワード}は
-反応式を描く際のもので、\verb|\chemfig|マクロのオプション引数では無効であり、単に無視されることに注意してください。\par
-\leavevmode\hfill
-\begin{minipage}[t]{.45\linewidth}
+以下に\verb|\chemfig|マクロの全パラメーター、デフォルト値、および簡単な説明を示します\label{listeparametres}。
+\begin{center}
 \CFjapsettablearraystretch
-	\begin{longtable}{rl}\hline
-		\chevrons{キーワード} & デフォルト\chevrons{値}\\\hline\endhead
-		\CFparam{chemfig style}
-		\CFparam{atom style}
-		\CFparam{bond join}
-		\CFparam{fixed length}
-		\CFparam{cram rectangle}
-		\CFparam{cram width}
-		\CFparam{cram dash width}
-		\CFparam{cram dash sep}
-		\CFparam{atom sep}
-		\CFparam{bond offset}
-		\CFparam{double bond sep}
-		\CFparam{angle increment}
-		\CFparam{node style}
-		\CFparam{bond style}
-		\CFparam{baseline}
-		\CFparam{debug}
-		\CFparam{cycle radius coeff}
-		\CFparam{stack sep}
-		\CFparam{show cntcycle}
-		\CFparam{autoreset cntcycle}\hline
+	\begin{longtable}{rc>{\baselineskip=\CFjaptabularbaselineskip}p{7.5cm}}\hline
+		\chevrons{キーワード} & デフォルト\chevrons{値}& 説明\\\hline\endhead
+		\CFparam{chemfig style}{\TIKZ{}に渡されるスタイル}
+		\CFparam{use atom strut}{\falseverb{\printatom}の引数に、直前の原子と等しい支柱を挿入する}
+		\CFparam{atom style}{原子を含んでいる\TIKZ{}ノードのスタイル}
+		\CFparam{bond join}{結合間の接合に関する真偽値}
+		\CFparam{fixed length}{原子間間隔を固定するか（真偽値）}
+		\CFparam{cram rectangle}{trueのとき、破線の結合を（くさび形ではなく）矩形で描く}
+		\CFparam{cram width}{くさび形結合の底辺の長さ}
+		\CFparam{cram dash width}{くさび形結合の破線の太さ}
+		\CFparam{cram dash sep}{くさび形結合の破線間の間隔}
+		\CFparam{atom sep}{原子間の間隔}
+		\CFparam{bond offset}{原子と結合の間の間隔}
+		\CFparam{double bond sep}{多重結合の線の間隔}
+		\CFparam{angle increment}{結合の角度の増分}
+		\CFparam{node style}{原子のスタイル}
+		\CFparam{bond style}{結合のスタイル}
+		\CFparam{baseline}{垂直位置を調整するための長さまたはノードの名前}
+		\CFparam{debug}{ノード、そのアンカーおよび名前を表示}
+		\CFparam{cycle radius coeff}{環の中に描かれる円・弧の縮小率}
+		\CFparam{stack sep}{\falseverb\chemabove および\falseverb\chembelow マクロの引数の垂直方向の間隔}
+		\CFparam{show cntcycle}{環の番号の表示}
+		\CFparam{autoreset cntcycle}{環の番号を\falseverb\chemfig の実行ごとにリセット}
+		\CFparam{gchemname}{trueの場合\falseverb\chemnameinit と\falseverb\chemname による深さの保存をグローバルにする}
+                \hline
 	\end{longtable}
-\end{minipage}\hfill
-\begin{minipage}[t]{.45\linewidth}
-\CFjapsettablearraystretch
-	\begin{longtable}{rl}\hline
-		\chevrons{キーワード} & デフォルト\chevrons{値}\\\hline\endhead
-		\CFparam{gchemname}
-		\CFparam{schemestart code}
-		\CFparam{schemestop code}
-		\CFparam{scheme debug}
-		\CFparam{compound style}
-		\CFparam{compound sep}
-		\CFparam{arrow offset}
-		\CFparam{arrow angle}
-		\CFparam{arrow coeff}
-		\CFparam{arrow style}
-		\CFparam{arrow double sep}
-		\CFparam{arrow double coeff}
-		\CFparam{arrow double harpoon}
-		\CFparam{arrow label sep}
-		\CFparam{arrow head}
-		\CFparam{+ sep left}
-		\CFparam{+ sep right}
-		\CFparam{+ vshift}\hline
-	\end{longtable}
-\end{minipage}\hfill\null\bigbreak
+\end{center}
 
 \Verb|<分子コード>|には、このドキュメントで説明する構文に従って、分子を描画するための指示を記述します。
 使用できる文字に制限はありません。
@@ -539,7 +536,7 @@ pdf\LaTeX{}では\falseverb{dvi モード}（tex $\longrightarrow$ dvi $\longrig
 
 トークン\verb-#-、\verb|\#|および\verb|\CFhash|は結合記号の\textbf{直後}に書かねばならず、
 ``\Verb-(<距離1>,<距離2>)-''の形式で括弧内に書かれた引数が必要です。
-ここで\Verb-<距離1>-は結合の始点での距離$\delta$であり、\Verb-<距離2>-は結合の終点での距離です。
+ここで \Verb-<距離1>-は結合の始点での距離$\delta$であり、\Verb-<距離2>-は結合の終点での距離です。
 \Verb-<距離2>-が省略された場合、終点での距離にはその時点で有効な$\delta$の値が使われます。
 以下に``B''に入る結合の距離、``B''から出る結合の距離、その両方を0にする方法をそれぞれ示します。
 なおこの例では見やすさのために、原子・結合間距離を4ptにしてあります。
@@ -554,7 +551,7 @@ pdf\LaTeX{}では\falseverb{dvi モード}（tex $\longrightarrow$ dvi $\longrig
 
 デフォルトでは、原子グループ内の全ての原子は\falseverb{数式モード}で組まれます（空白は無視されます）。
 そのため、下付き文字や上付き文字のような数式モード特有のコマンドを書くことができます\footnote{%
-  指数や添え字を含む原子グループは配置の際に問題になることがあります。\pageref{alignement.vertical}ページを参照してください。}。
+  指数や添え字を含む原子グループは配置の際に問題になることがあります。}。
 \exemple{数式モード}|\chemfig{A_1B^2-C _ 3 ^ 4}|
 
 くさび形結合専用の設定もあります。
@@ -596,7 +593,7 @@ pdf\LaTeX{}では\falseverb{dvi モード}（tex $\longrightarrow$ dvi $\longrig
 30度：\chemfig[angle increment=30]{-[1]-[-1]-[1]-[-1]}/
 
 \subsection{角度の直接指定}
-水平に対する角度を度単位で指定したい場合は、その角度を\Verb-[:<角度>]-形式で、オプションの角度フィールドに書きます。
+水平に対する角度を度単位で指定したい場合は、その角度を \Verb-[:<角度>]-形式で、オプションの角度フィールドに書きます。
 \Verb-<角度>-は、必要な場合は$[0,360)$の範囲におさまるように調整されます。
 
 \exemple{角度の直接指定}/\chemfig{A-[:30]B=[:-75]C-[:10]D-[:90]>|[:60]-[:-20]E-[:0]~[:-75]F}/
@@ -728,12 +725,13 @@ pdf\LaTeX{}では\falseverb{dvi モード}（tex $\longrightarrow$ dvi $\longrig
 	\chemfig{ABCD-[:-110]EFG}\quad
 	\chemfig{ABCD-[5]EFG}|
 
-\CF{}が決定したものとは別の原子を結合相手にしたい場合もあるでしょう。
-そのような場合は結合のオプション引数を使って、出発原子と到着原子を次のように指定します。
+場合によっては、\CF{}が計算した原子とは別の原子から結合を開始させたいことがあります。
+結合のオプション引数を使うことで、出発原子や到着原子を強制することができます。
+そのためには次のように記述します。
 \begin{center}
 	\Verb/[,,<整数1>,<整数2>]/
 \end{center}
-ここで\Verb-<整数1>-と\Verb-<整数2>-は繋ぎたい出発原子と到着原子の番号です。
+ここで \Verb-<整数1>-と \Verb-<整数2>-は繋ぎたい出発原子と到着原子の番号です。
 そのような原子が存在しない場合はエラーメッセージが出力されます。
 \exemple{結合する原子の指定}|\chemfig{ABCD-[:75,,2,3]EFG}\qquad
 	\chemfig{ABCD-[:75,,,2]EFG}\qquad
@@ -829,7 +827,7 @@ pdf\LaTeX{}では\falseverb{dvi モード}（tex $\longrightarrow$ dvi $\longrig
 \section{側鎖}
 \subsection{原理}
 ここまでの分子は全て直鎖状でしたが、そのようなことはめったにありません。
-部分分子を原子に繋げるには、対象の原子のうしろに括弧を書き、その中に\Verb-<コード>-を書きます。
+部分分子を原子に繋げるには、対象の原子のうしろに括弧を書き、その中に \Verb-<コード>-を書きます。
 この\Verb-<コード>-はその原子に繋げたい部分分子の記述です。
 
 次の例では、部分分子``\verb/-[1]W-X/''が原子``B''に繋がっています。
@@ -934,7 +932,7 @@ pdf\LaTeX{}では\falseverb{dvi モード}（tex $\longrightarrow$ dvi $\longrig
 \subsection{構文}
 
 \CF{}では正多角形を簡単に描くことができます。
-そのために、この環の外側にある\Verb/<原子>/に環を付ける、と考えます。
+そのために、この環の外側にある \Verb/<原子>/に環を付ける、と考えます。
 その構文は次の通りです。
 \begin{center}
 	\Verb/<原子>*<n>(<コード>)/
@@ -960,7 +958,7 @@ pdf\LaTeX{}では\falseverb{dvi モード}（tex $\longrightarrow$ dvi $\longrig
 \end{center}
 ここで、オプション引数の各フィールドが空の場合は、以下のデフォルト値を取ります。
 \begin{itemize}
-	\item \Verb/<角度1>/と\Verb/<角度2>/は弧の開始角度と終了角度です。
+	\item \Verb/<角度1>/と \Verb/<角度2>/は弧の開始角度と終了角度です。
           デフォルトはそれぞれ0\degres{}と360\degres{}で、したがってデフォルトでは円が描かれます。
 	\item \Verb/<tikz>/は弧を描く際に\TIKZ{}に渡されるコードです。
 \end{itemize}
@@ -999,7 +997,7 @@ pdf\LaTeX{}では\falseverb{dvi モード}（tex $\longrightarrow$ dvi $\longrig
 \begin{center}
 	\Verb/<原子>(<コード>)/
 \end{center}
-ここで\Verb/<コード>/は部分分子の記述で、\Verb-<原子>-は頂点となる原子です。
+ここで \Verb/<コード>/は部分分子の記述で、\Verb-<原子>-は頂点となる原子です。
 環に特有なこととして、部分分子のデフォルトの角度は0\degres{}ではなく、頂点を出る結合が、
 その頂点に繋がる環の2辺がなす角度を二等分するように計算されます。
 
@@ -1057,7 +1055,7 @@ pdf\LaTeX{}では\falseverb{dvi モード}（tex $\longrightarrow$ dvi $\longrig
 
 \subsection{環の中心}\label{centre_cycle}
 各環にはその中心に、\Verb|centrecycle<n>|という名前の大きさを持たないノードが配置されます。
-ここで\Verb|<n>|は環の番号です。（環は描画された順に番号が付けられます。）
+ここで \Verb|<n>|は環の番号です。（環は描画された順に番号が付けられます。）
 ブール値\CFkey{show cntcycle}をtrueに設定することで、各環の番号を表示することができます。
 
 ブール値を取る\CFkey{autoreset cntcycle}（デフォルトはtrue）は、各分子の最初に（つまり各\verb|\chemfig|の実行時に）環のカウンターを0にリセットするかどうかを設定します。
@@ -1084,7 +1082,7 @@ pdf\LaTeX{}では\falseverb{dvi モード}（tex $\longrightarrow$ dvi $\longrig
 	\item 対象の\emph{結合}に大きさのないノードを配置します。
           そのためには、その結合のオプション引数の最初に``\Verb-@{<名前>,<係数>}-''と書きます。
           1つ目のオプション引数がある場合は、カンマを付けずに``\Verb-@{<名前>,<係数>}-''の後に続けます。
-          このノードは``\Verb-<名前>-''という名前と、ノードの結合上の位置を指定する0と1の間の値\Verb-<係数>-を取ります。
+          このノードは``\Verb-<名前>-''という名前と、ノードの結合上の位置を指定する0と1の間の値 \Verb-<係数>-を取ります。
           単に``\Verb-@{<名前>}-''と書かれた場合、\Verb-<係数>-はデフォルトの0.5に設定され、ノードは結合の中央に配置されます。
 
 	\item 対象の\emph{原子}上にノードを配置します。
@@ -1100,8 +1098,8 @@ pdf\LaTeX{}では\falseverb{dvi モード}（tex $\longrightarrow$ dvi $\longrig
 	\Verb|\chemmove[<オプション>]{\draw[<tikzオプション>](<名前1>)<tikzリンク>(<名前2>);}|
 \end{center}
 
-\verb-\chemmove-のオプション引数\Verb-<オプション>-は、ノード間のリンクが描画される\falseverb{tikzpicture}環境の引数に追加されます。
-\Verb-<tikzオプション>-および\Verb-<tikzリンク>-は、\TIKZ{}パッケージのドキュメントで詳細に説明されています。
+\verb-\chemmove-のオプション引数 \Verb-<オプション>-は、ノード間のリンクが描画される\falseverb{tikzpicture}環境の引数に追加されます。
+\Verb-<tikzオプション>-および \Verb-<tikzリンク>-は、\TIKZ{}パッケージのドキュメントで詳細に説明されています。
 
 \subsection{共鳴効果}
 
@@ -1250,10 +1248,10 @@ pdf\LaTeX{}では\falseverb{dvi モード}（tex $\longrightarrow$ dvi $\longrig
 	\Verb/\chemname[<長さ>]{\chemfig{<分子コード>}}{<名前>}/
 \end{center}
 
-\Verb-<長さ>-は分子の\falseverb{ベースライン}と\Verb-<名前>-の文字の上部との間隔で、デフォルトは1.5~exです。
+\Verb-<長さ>-は分子の\falseverb{ベースライン}と \Verb-<名前>-の文字の上部との間隔で、デフォルトは1.5~exです。
 \Verb-<名前>-は分子に対して中央揃えとなります。複数の段落を含めることはできません。
 このように書いてみると分かるように
-\chemname{\chemfig{H-O-H}}{\scriptsize\bfseries The water molecule（水分子）：$\mathrm{\mathbf{H_2O}}$}、分子の下に表示される\Verb-<名前>-は、バウンディングボックスの垂直サイズのみが反映されます。
+\chemname{\chemfig{H-O-H}}{\scriptsize\bfseries The water molecule（水分子）：$\mathrm{\mathbf{H_2O}}$}、分子の下に表示される \Verb-<名前>-は、バウンディングボックスの垂直サイズのみが反映されます。
 \Verb-<名前>-の水平サイズは常にゼロです。
 
 以下は反応に出てくる各分子の下に名前を表示する例です。
@@ -1280,12 +1278,12 @@ pdf\LaTeX{}では\falseverb{dvi モード}（tex $\longrightarrow$ dvi $\longrig
 \schemestop
 \chemnameinit{}/
 
-コマンド\falseverb{\chemname}は\Verb-<name>-を描画するために、各分子のベースライン（このマニュアルの例では薄い灰色）
+コマンド\falseverb{\chemname}は \Verb-<name>-を描画するために、各分子のベースライン（このマニュアルの例では薄い灰色）
 の下に{\ltjsetparameter{autoxspacing=false}1.5ex${}+{}$\emph{これまでの分子の深さの最大値}}\footnote{\TeX{}用語では、深さはベースラインの下に垂直に拡張される寸法です。}の空きを挿入します。
-\label{chemnameinit}\falseverb{\chemnameinit}\Verb-{<要素>}-コマンドはこの最大深さを\Verb-<要素>-で初期化します。
+\label{chemnameinit}\falseverb{\chemnameinit}\Verb-{<要素>}-コマンドはこの最大深さを \Verb-<要素>-で初期化します。
 したがって、望ましい出力を得るには、次のようにしなければなりません。
 \begin{itemize}
-	\item 反応が最も深い分子で始まらない場合は、反応内で\verb-\chemname-コマンドを使う前に\Verb-\chemnameinit{<最も深い分子>}-を書きます。
+	\item 反応が最も深い分子で始まらない場合は、反応内で\verb-\chemname-コマンドを使う前に \Verb-\chemnameinit{<最も深い分子>}-を書きます。
 	\item 全ての分子の名前を書いた後に\verb-\chemnameinit{}-でこの深さを初期化して、
           この反応での最大深さが、以降の別の反応に影響を与えないようにします。
 \end{itemize}
@@ -1353,8 +1351,10 @@ pdf\LaTeX{}では\falseverb{dvi モード}（tex $\longrightarrow$ dvi $\longrig
 \section{原子の表示}\label{perso.affichage}
 
 分子が原子に分割されると、\CF{}は各原子を表示するために内部的に\falseverb{\printatom}マクロを呼び出します。
-このマクロは唯一の引数として、表示すべき原子のコード（例：``\verb-H_3-''）を取ります。
-デフォルトではこのマクロは\falseverb{数式モード}に入り、その引数を数式フォントのローマン体``rm''で表示します。
+このマクロの唯一の引数は、分子コードから読み取られた現在の原子を表すトークン（例えば ``\verb-H_3-''）で構成されています。
+キーワード\CFkey{use atom strut}が\CFval{true}に設定されている場合は、この引数に\verb|\vphantom|が追加されます
+（\pageref{liaisonentreatomes}ページ参照）。
+このマクロは数式モードに切り替え、その引数を数式フォントのローマン体``rm''を用いて表示します。
 これは次のように定義されています。
 \begin{itemize}
 	\item \LaTeX{}でコンパイルする場合：\quad \verb|\newcommand*\printatom[1]{\ensuremath{\mathrm{#1}}}|
@@ -1448,7 +1448,7 @@ pdf\LaTeX{}では\falseverb{dvi モード}（tex $\longrightarrow$ dvi $\longrig
 	\Verb|\definesubmol{<名前>}{<コード>}|
 \end{center}
 これにより、分子コード中で``\verb/!{名前}/''という別名を使って、この\Verb/<コード>/を呼び出すことができます。
-この\Verb-<名前>-には、
+この \Verb-<名前>-には、
 \begin{itemize}
 	\item \texttt{\string\csname}と\texttt{\string\endcsname}の間に書ける文字からなる文字列
         \item コントロールシーケンス
@@ -1485,8 +1485,8 @@ pdf\LaTeX{}では\falseverb{dvi モード}（tex $\longrightarrow$ dvi $\longrig
 \end{center}
 
 このオプション引数が指定された場合、別名への結合が右から到着する場合、つまり結合が到着する角度が$-90$\degres{}より大きく90\degres{}未満である場合は、
-別名``\Verb-!<名前>-''には\Verb'<コード1>'が使われます。
-それ以外の場合、つまり結合が左からあるいは垂直に到着する場合は、この別名は\Verb'<コード2>'に置き換えられます。
+別名``\Verb-!<名前>-''には \Verb'<コード1>'が使われます。
+それ以外の場合、つまり結合が左からあるいは垂直に到着する場合は、この別名は \Verb'<コード2>'に置き換えられます。
 
 次の例ではメチル基の別名をコントロールシーケンス\verb-\Me-として定義し、右から結合が到達する場合には``\verb-H_3C-''に、左から到達する場合には``\verb-CH_3-''に置き換えられるようにしています。
 この例からわかるように、この別名を使えばもはや結合がどの角度から入るかを気にしなくてよくなります。
@@ -1494,14 +1494,14 @@ pdf\LaTeX{}では\falseverb{dvi モード}（tex $\longrightarrow$ dvi $\longrig
 \chemfig{*6((-!\Me)=(-!\Me)-(-!\Me)=(-!\Me)-(-!\Me)=(-!\Me)-)}/
 
 \label{definesubmolarg}\Verb|<名前>|が``\verb|!|''によって呼び出されるとき、保存された部分分子は引数を取りません。
-1つ以上の引数を取る部分分子を定義するには、\Verb|<引数の数>|を\Verb|<名前>|の直後に置きます。
+1つ以上の引数を取る部分分子を定義するには、\Verb|<引数の数>|を \Verb|<名前>|の直後に置きます。
 \verb|\definesubmol|の完全な構文は次のとおりです。
 \begin{center}
 	\Verb/\definesubmol{<名前>}<引数の数>[<コード1>]{<コード2>}/
 \end{center}
 
 この引数は、\Verb|<コード>|内で通常の``\Verb|#<n>|''の形式で記述する必要があります。
-ここで\Verb|<n>|は引数の番号です。
+ここで \Verb|<n>|は引数の番号です。
 
 \exemple{引数付きの\texttt{\string\definesubmol}}/\definesubmol\X1{-[,-0.2,,,draw=none]{\scriptstyle#1}}
 \chemfig{*6((!\X A)-(!\X B)-(!\X C)-(!\X D)-(!\X E)-(!\X F)-)}
@@ -1512,7 +1512,7 @@ pdf\LaTeX{}では\falseverb{dvi モード}（tex $\longrightarrow$ dvi $\longrig
 \Verb|<引数の数>|が不正である（負または9より大きい数が指定された）場合、エラーメッセージが表示され、
 \CF{}は部分分子が引数を取らないものと見なします。
 
-文字``\verb|#|''に1から\Verb|<引数の数>|の数が続く、すなわち引数を指す場合を除き、分子コード内で``\verb|#|''を使用することができます。
+文字``\verb|#|''に1から \Verb|<引数の数>|の数が続く、すなわち引数を指す場合を除き、分子コード内で``\verb|#|''を使用することができます。
 
 \exemple{\#{}の使用}/\definesubmol\X2{#1-#2-#3-#(3pt,3pt)#4}
 \chemfig{A-!\X{M}{N}-B}/
@@ -1565,7 +1565,7 @@ pdf\LaTeX{}では\falseverb{dvi モード}（tex $\longrightarrow$ dvi $\longrig
 
 構文\CFkv{baseline}{\textup{\,(名前)\,}}（名前は括弧内に書く必要があります）を使用すると、
 ノード\chevrons{名前}で分子のベースラインを指定できます。
-原子の名前には、\CF{}によって自動的に割り当てられた（\Verb|n<a>-<b>|形式の）名前、またはユーザーが構文\Verb|@{<名前>}|で付けた名前を使うことができます（\pageref{mecanismes-reactionnels}ページ参照）。
+原子の名前には、\CF{}によって自動的に割り当てられた（\Verb|n<a>-<b>|形式の）名前、またはユーザーが構文 \Verb|@{<名前>}|で付けた名前を使うことができます（\pageref{mecanismes-reactionnels}ページ参照）。
 
 \exemple*{原子の配置}/デフォルトの配置：      \chemfig{A(-[:-60]-[:30]C)-[:45]B}\medbreak
 Ｂに合わせる：          \chemfig[baseline=(b.base)]{A(-[:-60]-[:30]C)-[:45]@{b}B}\medbreak
@@ -1600,47 +1600,44 @@ pdf\LaTeX{}では\falseverb{dvi モード}（tex $\longrightarrow$ dvi $\longrig
 この方法で位置決めをすると原子グループの整列に乱れが生じる場合があり、特に結合が水平の場合に非常に目立つことがあります。
 原子が同じ垂直方向の長さを持っている場合は全てがうまく機能しますが、
 出発原子が高い（上付き文字がある）または深い（下付き文字がある）場合に、到着原子がこれと異なる垂直方向の長さを持っていると、整列が崩れます。
-\exemple*{水平整列}/\Huge\setchemfig{atom sep=2em}
-\chemfig{A^1-B-C-D}\qquad
+\exemple[55]{水平整列}/\large\setchemfig{atom sep=2em}
+\chemfig{A^1-B-C-D}\par
 \chemfig{E_1-F-G-H}/
 
-この例において、最後の2つの原子が垂直方向にずれているにもかかわらず、2番目の原子が正しく整列しているのは驚くべきことです。
-これは、\CF{}が各到着原子の直前に出発原子の\falseverb{\vphantom}を追加するためです。
-ただし、この\falseverb{\vphantom}は到着原子の内容には含まれません。
-したがってこの\falseverb{\vphantom}は、以降の原子に影響を与えることを意図していません。
-この現象を明らかにするために原子のバウンディングボックスを可視化すると、原子``\verb-B-''と``\verb-F-''は、前の原子の高さを考慮したバウンディングボックスを持っていることがわかります。
-\exemple*{水平配置とバウンディングボックス}/\Huge\setchemfig{atom sep=2em}
-\fboxsep=0pt
+この現象は、原子のバウンディングボックスを表示させてみるとよくわかります。
+次の例では、原子``\verb-B-''と``\verb-F-''のバウンディングボックスの高さが、直前の原子の高さを考慮したものになっていることがわかります。
+\exemple[55]{水平配置とバウンディングボックス}/\large\setchemfig{atom sep=2em}
+\fboxsep=-0.2pt \fboxrule0.2pt
 \renewcommand\printatom[1]{\fbox{\ensuremath{\mathrm#1}}}
-\chemfig{A^1-B-C-D}\qquad
+\chemfig{A^1-B-C-D}\par
 \chemfig{E_1-F-G-H}/
 
-どのような自動的な解決策も満足のいくものではないので、この問題は手動で回避せねばなりません。
-具体的には、出発原子を\verb|\vphantom{X}|と等しい「支柱（strut）」とします。
-したがって、出発原子は「通常の」高さを持ち、次の原子グループに反映されません。
-つぎの例では簡潔さのために部分分子を使用しています。
-\exemple*{垂直配置の回避}/\Huge\setchemfig{atom sep=2em}
+最初の原子のバウンディングボックスの垂直方向の高さがその次の原子のものと異なるため、後続のバウンディングボックスに垂直方向のずれが生じます。
+結合が水平方向のとき、このずれは明確に見て取れます。
+
+\CF{}の1.7より前のバージョンでは直前の原子の\verb|\vphantom|をそれぞれの\verb|\printatom|の引数に追加することで、
+問題のあるバウンディングボックスに続く最初の原子に対する影響を隠していました。
+この動作に戻したい場合は、キーワード\CFkey{use atom strut}を\CFval{true}に設定してください。
+
+\exemple[55]{垂直配置とバウンディングボックス}/\large\setchemfig{atom sep=2em}
+\fboxsep=-0.2pt \fboxrule0.2pt
+\renewcommand\printatom[1]{\fbox{\ensuremath{\mathrm#1}}}
+\chemfig{A^1-B-C-D}\quad
+\chemfig[use atom strut=true]{A^1-B-C-D}
+
+\chemfig{E_1-F-G-H}\quad
+\chemfig[use atom strut=true]{E_1-F-G-H}/
+
+どのような自動的な解決策も満足のいくものではないので、出発原子の終端に\verb|\vphantom{X}|と等しい「支柱（strut）」を作ることで、
+この問題を手動で回避できます。
+これにより出発原子は「通常の」高さを持ち、ずれはその後の原子グループに反映されません。
+次の例ではより簡潔にするために部分分子を使用しています。
+\exemple[55]{垂直配置の回避}/\large\setchemfig{atom sep=2em}
 \definesubmol\I{\vphantom{X}}
-\chemfig{A^1|!\I-B-C-D}\qquad
+\chemfig{A^1|!\I-B-C-D}\par
 \chemfig{E_1|!\I-F-G-H}/
-この方法の欠点は、出発原子の幅が0であるため、最初の結合が長すぎることです。
 
-もし、それにより分子にもたらされる帰結を理解していると\emph{本当に確信}していて、本当にそれが適している場合には、
-\verb|\printatom|を再定義して、原子のバウンディングボックスが一定の垂直高さ、例えば``$\mathrm{X^1_1}$''の高さを持つように強制することができます。
-\exemple*{\string\printatom{}の再定義}/\Huge\setchemfig{atom sep=2em}
-\let\oldprintatom\printatom
-\renewcommand\printatom[1]{%
-	\begingroup
-		\setbox0\hbox{\oldprintatom{X^1_1}}%
-		\edef\tmp{\ht0=\the\ht0\relax\dp0=\the\dp0\box0 }%
-		\setbox0\hbox{\oldprintatom{#1}}%
-		\ifnum1\ifdim\ht0=0pt0\fi\ifdim\dp0=0pt0\fi\ifdim\wd0=0pt0\fi<1000
-			\tmp
-		\fi
-	\endgroup
-}
-\chemfig{A^1-B-C-D}\qquad
-\chemfig{E_1-F-G-H}/
+この方法の欠点は、出発原子の幅が0であるため、最初の結合が長すぎることです。
 
 \subsection{\texttt{\textbackslash chemskipalign}マクロ}\label{chemskipalign}
 任意の原子グループに対して、\CF{}の整列調整機構を一時的に無効にし、\falseverb{\vphantom}を「中和」することができます。
@@ -1845,8 +1842,8 @@ pdf\LaTeX{}では\falseverb{dvi モード}（tex $\longrightarrow$ dvi $\longrig
 \begin{center}
 	\Verb|\chembelow[<長さ>]{<コード>}{<内容>}|
 \end{center}
-はそれぞれ\Verb-<コード>-の上および下の垂直距離\Verb-<長さ>-の位置に\Verb-<内容>-を配置します。
-その際\Verb-<コード>-の\falseverb{バウンディングボックス}は変化しません。
+はそれぞれ \Verb-<コード>-の上および下の垂直距離 \Verb-<長さ>-の位置に \Verb-<内容>-を配置します。
+その際 \Verb-<コード>-の\falseverb{バウンディングボックス}は変化しません。
 オプション引数を指定すると、それぞれの呼び出しでこの長さを指定できます。
 オプション引数が使用されない場合、デフォルト値\CFval{1.5pt}が使用されます。
 この値は\chevrons{キーワード} \CFkv{stack sep}{長さ}で変更できます。
@@ -1856,7 +1853,7 @@ pdf\LaTeX{}では\falseverb{dvi モード}（tex $\longrightarrow$ dvi $\longrig
 これらは環で特に便利ですが、\CF{}が文字A、B、C、Dで新しい原子を開始しないように、これらを波括弧の中に書く必要があることに注意してください。
 \exemple{環での積み重ね}|\chemfig{*5(-\chembelow{A}{B}--\chemabove{C}{D}--)}|
 
-\label{Chemabove}\falseverb{\Chemabove}および\falseverb{\Chembelow}コマンドも同様の機能を持ちますが、バウンディングボックスは上または下に配置された\Verb-<内容>-を含みます。
+\label{Chemabove}\falseverb{\Chemabove}および\falseverb{\Chembelow}コマンドも同様の機能を持ちますが、バウンディングボックスは上または下に配置された \Verb-<内容>-を含みます。
 
 1つのアイテムを別のアイテムの上または下に配置する場合に、\verb|\chemabove|と\verb|\charge|の違いは何でしょうか。
 \exemple{\string\chemabove\space{}と\string\charge}/\chemfig{*5(----\chemabove{A}{\oplus}-)}
@@ -2145,6 +2142,19 @@ $\scriptstyle\oplus$}{A}-[2]B}
 \chemfig{A-[,3,,,decorate,decoration={snake,amplitude=1.5mm,
     segment length=2.5mm}]B}|
 
+部分分子``wb''を定義して、直前の結合に対して垂直な波線の結合を描くこともできます。
+
+\exemple{波線の結合}|\definesubmol{wb}{%
+       (-[::90,.5,,,draw=none]%
+       -[::180,,,,blue,decorate,decoration={%
+               snake,amplitude=0.2mm,segment length=0.75mm
+               }%
+       ])}
+\chemfig{!{wb}-O-[:60]}
+\qquad
+\chemfig{([:150]-!{wb})([:-90]-!{wb})=_[:30]-[:-30]!{wb}}
+|
+
 より柔軟性を持たせるために、文字``\verb-@-''を使用してノードを定義し、
 分子が描かれた後に\falseverb\chemmove{}を使ってこれらのノードを曲線で繋げることもできます。
 
@@ -2314,7 +2324,17 @@ $\scriptstyle\oplus$}{A}-[2]B}
 
 \section{概要}\label{schemestart}
 
-反応式は``\falseverb\schemestart''コマンドと``\falseverb\schemestop''コマンドの間に書かなくてはなりません。
+反応式は次の文法で記述されます。
+
+\begin{center}
+	\Verb|\schemestart[角度,係数,スタイル][位置] <反応> \schemestop|
+\end{center}
+
+{\color{red}\textbf{重要}}：今後のいずれかのバージョンにおいてオプション引数の文法が変更されます。
+2番目のオプション引数は削除され、1つ目のオプション引数で\CFkv{キーワード}{値}形式のリストを与えるようになります。
+したがって、現在のオプション引数で許可されている設定を行うには、以下の\chevrons{キーワード}を使うことをおすすめします。
+\CFkey{arrow angle}、\CFkey{arrow coeff}、\CFkey{arrow style}および\CFkey{init anchor}。
+
 次の例に示すように、\chevrons{キーワード} \CFkey{scheme debug}に値\CFval{true}または\CFval{false}を設定することで、
 \falseverb{デバッグ情報}の表示・非表示を設定できます。
 \exemple[50]{例1}/\setchemfig{scheme debug=false}
@@ -2360,6 +2380,39 @@ $\scriptstyle\oplus$}{A}-[2]B}
           この \CFval{長さ}のデフォルトは5emです。
 	\item 最後に、化合物の端と矢印の始点および終点の間の距離は、\chevrons{キーワード} \CFkv{arrow offset}{長さ}で定義されます。この\CFval{長さ}のデフォルトは4ptです。\label{arrow offset}
 \end{itemize}
+
+以下に\verb|\schemestart|マクロの全パラメーター、デフォルト値、および簡単な説明を示します\label{listeparametresschemestart}。
+これらのパラメーターは \Verb|\setchemfig{<キーワード>=<値>}|マクロを使用して設定する必要があります。
+
+\begin{center}
+	\begin{longtable}{rc>{\baselineskip=\CFjaptabularbaselineskip}p{7.5cm}}\hline
+		\chevrons{キーワード} & デフォルト\chevrons{値} & 説明\\\hline\endhead
+		\CFparam{schemestart code}{入れ子ではない反応式の最初に実行されるコード}
+		\CFparam{schemestop code}{入れ子ではない反応式の最後に実行されるコード}
+		\CFparam{scheme debug}{この値が\CFval{true}のとき、ノード、名前およびアンカーを表示}
+		\CFparam{compound style}{化合物のスタイル}
+		\CFparam{compound sep}{化合物間の間隔}
+		\CFparam{name sep}{化合物のボックスとその名前の垂直方向の最小距離}
+		\CFparam{arrow offset}{化合物と矢印の間隔}
+		\CFparam{arrow angle}{反応の矢印の角度}
+		\CFparam{arrow coeff}{矢印の長さを与えるcompound sepに対する係数}
+		\CFparam{arrow style}{矢印のスタイル}
+		\CFparam{arrow double sep}{両矢印の間隔}
+                \CFparam{arrow double coeff}{両矢印``\falseverb{<->}\rule{0pt}{0pt}\falseverb{>}''および
+                  ``\falseverb{<}\rule{0pt}{0pt}\falseverb{<->}''の短い矢印の縮小率}% \rule は <<, >> が合字にならないように無理矢理分離
+		\CFparam{arrow double harpoon}{両矢印の矢尻を片羽で描画}
+		\CFparam{arrow label sep}{矢印とそのラベルの間隔}
+		\CFparam{arrow head}{矢印の矢尻のスタイル}
+		\CFparam{+ sep left}{$+$記号の前の空き}
+		\CFparam{+ sep right}{$+$記号の後の空き}
+		\CFparam{+ vshift}{$+$記号の垂直方向の移動距離}
+		\hline
+	\end{longtable}
+\end{center}
+
+\textbf{\color{red}重要}：一貫性を保つため、次期バージョンの\CF{}では\verb|\schemestart|の文法が変更されます。
+これまでの2つのオプション引数は削除され、\Verb|<キーワード>=<値>|形式のリストを取るオプション引数に置き換えられます。
+これまで2つのオプション引数で指定されていた設定は、新しい \Verb|<キーワード>|で設定できるようになります。
 
 \section{矢印の種類}\label{arrow}
 \falseverb{\arrow}コマンドの後に波括弧内に書かれたオプション引数（これは必須ではありません）が続く場合、その引数は矢印の種類を指定します。
@@ -2667,7 +2720,7 @@ rounded corners=1mm}}
 \begin{center}
 	\Verb/\chemleft<car1><要素>\chemright<car2>/
 \end{center}
-ここで\Verb-<car1>-と\Verb-<car2>-は、``(''と``)''あるいは``[''と``]''など、
+ここで \Verb-<car1>-と \Verb-<car2>-は、``(''と``)''あるいは``[''と``]''など、
 \verb-\left-、\verb-\right-コマンドで使用可能な任意の伸縮可能な区切り記号です。
 \exemple{\string\chemleft{}、\string\chemright{}マクロ}/\chemleft\lfloor\chemfig{A-[1]B}\chemright)
 
@@ -2872,7 +2925,7 @@ X\arrow
 
 \hfill\Verb-\definearrow{<数>}{<矢印の名前>}{<コード>}-\hfill\null
 
-ここで、\Verb-<数>-は\Verb-<コード>-で使用されるオプション引数の数であり、コードの中では\verb-#1-、\verb-#2-などの通常の構文で使われます。
+ここで、\Verb-<数>-は \Verb-<コード>-で使用されるオプション引数の数であり、コードの中では\verb-#1-、\verb-#2-などの通常の構文で使われます。
 これらのオプション引数にデフォルト値を与えることはできません。
 \verb-\arrow-マクロを使用する際に値が指定されていない場合は、引数は空のままになります。
 
@@ -3114,7 +3167,7 @@ ABC\arrow{<=>}DEF\merge v[*{0}うえ][*{0}した](c1)(c2)--()[0.25,1,0.75]GHIJ
 このマクロは、\Verb-{<長さ1>,<長さ2>,<長さ3>}-の構文でオプション引数を取ります。
 ここで、
 \begin{itemize}
-	\item \Verb-<長さ1>-と\Verb-<長さ2>-は、$+$記号の前と後に挿入される長さです。
+	\item \Verb-<長さ1>-と \Verb-<長さ2>-は、$+$記号の前と後に挿入される長さです。
 	\item \Verb-<長さ3>-は、$+$記号の垂直オフセットです。
 \end{itemize}
 
@@ -3194,6 +3247,200 @@ A\subscheme{\+}BCDEF \arrow G
   \chemfig{\charge{90=\|,180=\|,270=\|}{Br}-\charge{0=\|,90=\|,-90=\|}{Br}}
 \schemestop/
 
+\part{水平方向の反応}\label{hreac}
+水平方向の反応をより簡潔な構文で描くために、``\verb|hreac|''環境を使うことができます。
+\begin{center}
+	\leavevmode
+	\vtop{%
+		\hbox{\Verb|\hreac[<キーワード>=<値>のリスト]|}\kern1.25ex
+		\hbox{\Verb|    <反応>|}\kern1.25ex
+		\hbox{\verb|\endhreac|}
+	}
+\end{center}
+
+前述のとおり、以降の文書全体にオプションを適用したい場合は \Verb|\setchemfig{<キーワード>=<値>のリスト}|で設定できます。
+
+単一の反応にだけ設定を適用するには、その環境のオプション引数を使用します。
+
+以下に、\verb|\hreac|マクロの全てのパラメーター、そのデフォルト値、および簡単な説明を示します。\label{listeparametreshreac}
+\begin{center}
+	\begin{longtable}{rc>{\baselineskip=\CFjaptabularbaselineskip}p{7.5cm}}\\\hline
+		キーワード & デフォルト値 & \hfill 説明\hfill\null\\\hline
+		\CFparam{harrow minwidth}{矢印の最小の長さ}
+		\CFparam{label xsep}{矢印がラベルに合わせて延長される場合にラベルの前後に挿入される空白の長さ。
+                  したがって矢印の長さは最も長いラベルの長さとこの寸法の2倍を足したものに等しくなります。}
+		\CFparam{label align}{矢印のラベルの文字揃えの位置（\CFval{c}、\CFval{r}または\CFval{l}）}
+		\CFparam{name sep}{化合物のボックスとその名前の間の最小の垂直距離}
+		\CFparam{hreac anchor}{最初の化合物のアンカー}
+		\CFparam{hreac sep}{化合物のボックス間の水平距離}
+		\CFparam{hreac debug}{この値が\CFval{true}のとき、化合物のボックス、アンカー、ノード名および水平線を表示}
+		\CFparam{arrow label sep}{これ以降のキーワードについては、\falseverb\schemestart{}のオプションを参照（\pageref{listeparametresschemestart}ページ）}
+		\CFparam{arrow style}{}
+		\CFparam{arrow double sep}{}
+		\CFparam{arrow double coeff}{}
+		\CFparam{arrow double harpoon}{}
+		\CFparam{arrow label sep}{}
+		\CFparam{arrow head}{}
+		\hline
+	\end{longtable}
+\end{center}
+
+\section{文法}
+\Verb|<反応>|の構文において、トークン {\ttfamily\boxedfalseverb+,\boxedfalseverb>, \boxedfalseverb\> \boxedfalseverb\^} は
+特別な意味を持ちます。
+
+\Verb|<反応>|では、化合物、\verb|+|記号、および矢印を次の構文と規則に従って記述できます。
+\begin{itemize}
+	\item 次に出現する``\verb|+|''、``\verb|>|''あるいは環境の終わりまでが \Verb|<化合物>|として扱われます。
+	\item \Verb|<反応>|では、波括弧で囲まれた \Verb|<化合物>|に属するコードは解析されず、そのまま波括弧内に残されます。
+	\item 空白は無視されます。（波括弧内にある場合を除きます。前項参照）
+	\item \Verb|<化合物>|は、上記の予約トークンを除く任意のコードから構成されます。ただし波括弧内にある予約トークンは除外されません。
+	\item ``\verb|+|''は$+$を描画し、それ自身が \Verb|<化合物>|です。
+	\item ``\verb|>|''は矢印を描画し、それ自身が \Verb|<化合物>|です。
+\end{itemize}
+\exemple[60]{例1}/
+\hreac
+	\chemfig{*6(-=-=-=)}
+	+
+	\chemfig{X=[1]Y}
+	+
+	Z > X + Y
+\endhreac/
+
+\section{化合物の配置}\label{hreacshift}
+すべての化合物には \Verb|c<n>|（\Verb|<n>|は整数）と番号が付けられ、ボックス内に配置されます。
+すべてのボックスの中心は同一水平線上に配置され、\verb|hreac debug|オプションが有効なときはその線が赤い点線で示されます。
+\exemple[60]{化合物の垂直方向の配置}/
+\hreac[hreac debug]
+	\chemfig{*6(-=-=-=)}
+	+
+	\chemfig{X=[1]Y}
+	+
+	Z > X + Y
+\endhreac/
+
+\verb|\>|\Verb|{<寸法>}|が\Verb|<化合物>|の先頭に書かれた場合、その \Verb|<化合物>|は\Verb|{<寸法>}|だけ水平に移動します。
+\exemple[60]{化合物の水平方向の配置の調整}/
+\hreac[hreac debug]
+	\chemfig{*6(-=-=-=)}
+	+
+	\>{-5pt}\chemfig{X=[1]Y}
+	+
+	\>{5pt}Z > X + Y
+\endhreac/
+
+\Verb|\^{<寸法>}|が \Verb|<化合物>|の先頭に書かれた場合、その化合物（のみ）が垂直方向に \Verb|{<寸法>}|だけ移動します。
+\Verb|*|が付いた \Verb|\^*{<寸法>}|の場合は、それ以降のすべての化合物に適用されます。
+\exemple[60]{化合物の垂直方向の配置の調整}/
+\hreac[hreac debug]
+	\chemfig{*6(-=-=-=)}
+	+
+	\^{10pt}\chemfig{X=[1]Y}
+	+
+	Z > X + Y
+\endhreac\medbreak
+\hreac[hreac debug]
+	\chemfig{*6(-=-=-=)}
+	+
+	\^*{10pt}\chemfig{X=[1]Y}
+	+
+	Z > X + Y
+\endhreac/
+
+\section{化合物名}\label{hreacname}
+\Verb|<化合物>|の \Verb|<名前>|を表示するには、以下のいずれかを使用します。
+\begin{itemize}
+	\item \Verb|\chemname[<寸法>]{<化合物>}{<名前>}|
+	\item \Verb|<化合物>\name[<寸法>]{<名前>}| あるいは \Verb|\name[<寸法>]{<名前>}<化合物>| （順序に依存しません）
+\end{itemize}
+
+オプションの \Verb|<寸法>|は \Verb|<化合物>|ボックスと \Verb|<名前>|ボックスの最小距離を指定します。
+省略された場合のデフォルト値はキーワード\CFkey{name sep}の値です。
+
+名前はすべて \Verb|name<n>|（\Verb|<n>|はその \Verb|<化合物>|に対応する整数）によって番号付けられます。
+これらは \Verb|<化合物>|と同じ幅を持つボックスに配置されます。
+これらのボックスの上辺は同一水平線上に配置され、その垂直方向の位置は最大の深さをもつ化合物よりも下になるように調節されます。
+\exemple[60]{化合物の名前}/
+\hreac[hreac debug]
+	\chemfig{*6(-=-=-=)}\name{環}
+	+
+	\chemfig{X=[1]Y}\name{名前}
+	+
+	Z > X + Y
+\endhreac/
+
+\Verb|<名前>|の幅が\Verb|<化合物>|の幅を超過した場合、\Verb|<化合物>|の幅は調節されずに \Verb|<名前>|がそのボックスの境界を
+はみだして配置されます。
+\Verb|<名前>|を複数行にわたって表示させたい場合は、ユーザー自身で\verb|\\|マクロを使用する必要があります。
+\exemple[60]{化合物の名前}/
+\hreac[hreac debug]
+	\chemfig{*6(-=-=-=)}\name{環}
+	+
+	\chemfig{X=[1]Y}\name{ものすごく長い名前}
+	+
+	Z > X + Y
+\endhreac\medbreak
+\hreac[hreac debug]
+	\chemfig{*6(-=-=-=)}\name{環} +
+	\chemfig{X=[1]Y}\name{とても\\長い\\名前} +
+	Z > X + Y
+\endhreac/
+
+\section{矢印のラベル}\label{hreaclabel}
+トークン``\verb|>|''の直後にオプション引数 \Verb|[<ラベル>]|が与えられると、この \Verb|<ラベル>|は矢印の上に配置されます。
+さらにもうひとつのオプション引数 \Verb|[<ラベル>]|が与えられた場合、2つめの \Verb|<ラベル>|は矢印の下に配置されます。
+\exemple[60]{矢印のラベル}/
+\hreac[hreac debug]
+	A >[上] B >[][下部] C >[上][下部] D
+\endhreac/
+
+矢印のデフォルトの幅は\verb|3em|ですが、ラベルがこの寸法を越えた場合は、矢印が延長されます。
+\exemple[60]{矢印の延長}/
+\hreac[hreac debug]
+	A >[上][下部] B
+\endhreac
+\qquad
+\hreac[hreac debug]
+	A >[とても長いラベル][下部] B
+\endhreac/
+
+化合物名の場合と同様に、\verb|\\|を使用して \Verb|<ラベル>|を複数行にすることができます。
+\exemple[60]{複数行にわたるラベル}/
+\hreac[hreac debug]
+	A >[とても\\長い\\ラベル][下] B
+\endhreac/
+
+矢印の下に配置されるラベルを含むボックスは、化合物名の垂直方向の位置には影響を与えません。
+\exemple[60]{ラベルと名前の独立性}/
+\hreac[hreac debug]
+	\chemfig{*6(-=-=-=)}\name{環}
+	+
+	\chemfig{X=[1]Y}\name{名前}
+	+
+	Z >[][矢印の\\下の\\とても\\深い\\ラベル] X
+\endhreac/
+
+\section{矢印の種類}\label{hreacarrow}
+
+トークン\verb|>|の直後に波括弧で囲まれたテキストが与えられると、この非必須のテキストは矢印の種類を指定します。
+このデフォルト値はキーワード\CFkey{arrow head}の値であり、これはデフォルト値として\CFval{-CF}を持ちます。
+
+したがって、トークン\verb|>|の完全な構文は次のとおりです。
+\begin{center}
+	\verb|>|\Verb|{<矢印の種類>}[<上ラベル>][<下ラベル>]|
+\end{center}
+
+このオプションのパラメーターを指定することで、すでに「反応式」（\pageref{arrow}ページ）の節で説明した他の種類の矢印、つまり
+``\verb|->|''、``\verb|<-|''、``\verb|<->|''、``\verb|<=>|''、``\verb|<<->|''および``\verb|<->>|''
+を使用することができます。
+\exemple[60]{6種類の矢印}/
+\hreac A > B \endhreac\par% >{->}と同一
+\hreac A >{<-} B \endhreac\par
+\hreac A >{<->} B \endhreac\par
+\hreac A >{<=>} B \endhreac\par
+\hreac A >{<<->} B \endhreac\par
+\hreac A >{<->>} B \endhreac/
+
 \part{コマンドリスト}
 \CF{}が提供するコマンドは以下の通りです。
 \begin{center}
@@ -3201,62 +3448,24 @@ A\subscheme{\+}BCDEF \arrow G
 \begin{longtable}{>\footnotesize l>\footnotesize p{9cm}}\\\hline
 \hfill\normalsize コマンド\hfill\null &\hfill\normalsize 説明\hfill\null\\\hline
 \Verb-\chemfig[<設定>]{<コード>}-& \Verb-<コード>-で記述された分子を描画します\\
-\Verb|\setchemfig{<設定>}|& パラメーターを構文\chevrons{キーワード}${}={}$\chevrons{値}で設定します。以下に
-完全なリストとデフォルト値を示します
-\begin{itemize}
-  \addtolength{\baselineskip}{-1pt}
-	\item \CFkv{chemfig style}       {{}}：\TIKZ{}に渡されるスタイル
-	\item \CFkv{atom style}          {{}}：\TIKZ{}ノード（原子）のスタイル
-	\item \CFkv{bond join}           {false}：結合間の接合に関する真偽値
-	\item \CFkv{fixed length}        {false}：原子間間隔を固定するか（真偽値）
-	\item \CFkv{cram rectangle}      {false}：trueのとき、破線の結合を（くさび形ではなく）矩形で描く
-	\item \CFkv{cram width}          {1.5ex}：くさび形結合の底辺の長さ
-	\item \CFkv{cram dash width}     {1pt}：くさび形結合の破線の太さ
-	\item \CFkv{cram dash sep}       {2pt}：くさび形結合の破線間の間隔
-	\item \CFkv{atom sep}            {3em}：原子間の間隔
-	\item \CFkv{bond offset}         {2pt}：原子と結合の間の間隔
-	\item \CFkv{double bond sep}     {2pt}：多重結合の線の間隔
-	\item \CFkv{angle increment}     {45}：結合の角度の増分
-	\item \CFkv{node style}          {{}}：原子のスタイル
-	\item \CFkv{bond style}          {{}}：結合のスタイル
-	\item \CFkv{cycle radius coeff}  {0.75}：環の中に描かれる円・弧の縮小率
-	\item \CFkv{stack sep}           {1.5pt}：\verb-\chemabove-および\verb-\chembelow-マクロの引数の垂直方向の間隔
-	\item \CFkv{show cntcycle}       {false}：環の番号の表示
-	\item \CFkv{baseline}            {0pt}：垂直位置を調整するための長さまたはノードの名前
-	\item \CFkv{debug}               {false}：原子と原子グループの表示
-	\item \CFkv{autoreset cntcycle}  {true}：\verb|\chemfig|の実行ごとに環の番号をリセット
-	\item \CFkv{compound style}      {{}}：化合物のスタイル
-	\item \CFkv{compound sep}        {5em}：化合物間の間隔
-	\item \CFkv{arrow offset}        {4pt}：化合物と矢印の間隔
-	\item \CFkv{arrow angle}         {0}：反応の矢印の角度
-	\item \CFkv{arrow coeff}         {1}：矢印の長さを与えるcompound sepに対する係数
-	\item \CFkv{arrow style}         {{}}：矢印のスタイル
-	\item \CFkv{arrow double sep}    {2pt}：両矢印の間隔
-	\item \CFkv{arrow double coeff}  {0.6}：両矢印``\verb|<->>|''および``\verb|<<->|''の短い矢印の縮小率
-	\item \CFkv{arrow double harpoon}{true}：両矢印の矢尻を片羽で描画
-	\item \CFkv{arrow label sep}     {3pt}：矢印とそのラベルの間隔
-	\item \CFkv{arrow head}          {-CF}：矢印の矢尻のスタイル
-	\item \CFkv{+ sep left}          {0.5em}：$+$記号の前の空き
-	\item \CFkv{+ sep right}         {0.5em}：$+$記号の後の空き
-	\item \CFkv{+ vshift}            {0pt}：$+$記号の垂直方向の移動距離
-	\item \CFkv{gchemname}           {true}：trueの場合、\verb|chemnameinit|と\verb|chemname| による深さの保存をグローバルにする
-	\item \CFkv{schemestart code}    {}：入れ子ではない反応式の最初に実行されるコード
-	\item \CFkv{schemestop code}     {}：入れ子ではない反応式の最後に実行されるコード
-\end{itemize}
+\Verb|\setchemfig{<設定>}|&\chevrons{キーワード}${}={}$\chevrons{値} の構文でパラメーターを設定します。
+\verb|\chemfig|の\chevrons{キーワード}および\chevrons{値}のリストは\pageref{listeparametres}ページに、
+\verb|\schemestart|マクロのものは\pageref{listeparametresschemestart}ページに、
+\verb|\hreac|マクロのものは\pageref{listeparametreshreac}ページにあります。
 \\
 \verb|\resetchemfig|&パラメーターをデフォルト値にリセットします\\
 \falseverb\printatom& 分子内に原子を描くためのマクロ。表示をカスタマイズするために再定義できます。\pageref{perso.affichage}ページ参照\\
 \falseverb\hflipnext&次の分子を水平方向に反転して描画します\\
 \falseverb\vflipnext&次の分子を垂直方向に反転して描画します\\
 \Verb-\definesubmol{<名前>}<数字>[<コード1>]{<コード2>}- &描画する分子のコード内で使用可能な別名\Verb-!<名前>-を作成します。
-最後の結合の角度に応じて\Verb-<コード1>-または\Verb-<コード2>-に置き換えられます。\pageref{definesubmol}ページ参照\\
+最後の結合の角度に応じて \Verb-<コード1>-または \Verb-<コード2>-に置き換えられます。\pageref{definesubmol}ページ参照\\
 \falseverb\chemskipalign&
 垂直方向の整列において現在の原子グループを無視させます。\pageref{chemskipalign}ページ参照\\
-\Verb-\redefinesubmol{<名前>}<数字>[<コード1>]{<コード2>}- & 既存の別名\Verb-!<名前>-を新しい\Verb-<コード>-で再定義します。\pageref{redefinesubmol}ページ参照\\[2ex]\hline
+\Verb-\redefinesubmol{<名前>}<数字>[<コード1>]{<コード2>}- & 既存の別名 \Verb-!<名前>-を新しい \Verb-<コード>-で再定義します。\pageref{redefinesubmol}ページ参照\\[2ex]\hline
 &\\
 \Verb-\charge{[<パラメーター>]<場所>[<tikz>]}{<原子>}-&
 \Verb-<原子>-を描画し\Verb-<場所>-に従って電荷を配置します。
-電荷は\Verb-<原子>-のバウンディングボックスの外に置かれます。
+電荷は \Verb-<原子>-のバウンディングボックスの外に置かれます。
 \pageref{charge}ページ参照\\
 \Verb-\Charge{[<パラメーター>]<場所>[<tikz>]}{<原子>}-&
 \verb|\charge|と同様ですが、電荷はバウンディングボックスに含まれます\\
@@ -3265,16 +3474,16 @@ A\subscheme{\+}BCDEF \arrow G
 \Verb-<tikzコード>-に従って、文字``\verb-@-''によって定義された分子内のノード間を繋ぎます。\pageref{mecanismes-reactionnels}ページ参照\\[2ex]\hline
 &\\
 \Verb-\chemabove[<長さ>]{<テキスト1>}{<テキスト2>}- &
-\Verb-<テキスト1>-を描画し、その上方に\Verb-<テキスト2>-を\Verb-<長さ>-の垂直方向の距離をおいて配置します。
+\Verb-<テキスト1>-を描画し、その上方に \Verb-<テキスト2>-を \Verb-<長さ>-の垂直方向の距離をおいて配置します。
 このコマンドは\Verb-<テキスト1>-のバウンディングボックスを変更しません。\pageref{chemabove}ページ参照\\
 \Verb-\chembelow[<長さ>]{<テキスト1>}{<テキスト2>}- &
-\Verb-<テキスト1>-を描画し、その下方に\Verb-<テキスト2>-を\Verb-<長さ>-の垂直方向の距離をおいて配置します。
-このコマンドは\Verb-<テキスト1>-のバウンディングボックスを変更しません。\pageref{chemabove}ページ参照\\
+\Verb-<テキスト1>-を描画し、その下方に \Verb-<テキスト2>-を \Verb-<長さ>-の垂直方向の距離をおいて配置します。
+このコマンドは \Verb-<テキスト1>-のバウンディングボックスを変更しません。\pageref{chemabove}ページ参照\\
 \Verb-\Chemabove[<長さ>]{<テキスト1>}{<テキスト2>}- &
-\Verb-<テキスト1>-を描画し、その上方に\Verb-<テキスト2>-を\Verb-<長さ>-の垂直方向の距離をおいて配置します。
+\Verb-<テキスト1>-を描画し、その上方に \Verb-<テキスト2>-を \Verb-<長さ>-の垂直方向の距離をおいて配置します。
 \pageref{chemabove}ページ参照\\
 \Verb-\Chembelow[<長さ>]{<テキスト1>}{<テキスト2>}- &
-\Verb-<テキスト1>-を描画し、その下方に\Verb-<テキスト2>-を\Verb-<長さ>-の垂直方向の距離をおいて配置します。
+\Verb-<テキスト1>-を描画し、その下方に \Verb-<テキスト2>-を \Verb-<長さ>-の垂直方向の距離をおいて配置します。
 \pageref{chemabove}ページ参照\\
 \Verb-\chemname[<長さ>]{<分子>}{<名前>}- & \Verb-<名前>-を\Verb-<分子>-の下に書きます。
 \pageref{chemname}ページ参照\\
@@ -3296,15 +3505,22 @@ A\subscheme{\+}BCDEF \arrow G
 \falseverb\definearrow &
 矢印を定義します。\pageref{definearrow}ページ参照\\
 \Verb-\chemleft<car1><要素>-\falseverb\chemright\Verb-<car2>-&
-伸縮可能な区切り記号\Verb-<car1>-および\Verb-<car2>-をそれぞれ\Verb-<要素>-の左および右に配置します。
+伸縮可能な区切り記号\Verb-<car1>-および \Verb-<car2>-をそれぞれ \Verb-<要素>-の左および右に配置します。
 \pageref{chemleft}ページ参照\\
 \Verb-\chemup<car1><要素>-\falseverb\chemdown\Verb-<car2>-&
-伸縮可能な区切り記号\Verb-<car1>-および\Verb-<car2>-をそれぞれ\Verb-<要素>-の上および下に配置します。
+伸縮可能な区切り記号 \Verb-<car1>-および \Verb-<car2>-をそれぞれ \Verb-<要素>-の上および下に配置します。
 \pageref{chemup}ページ参照\\
 \Verb|\polymerdelim[<設定>]{<ノード1>}{<ノード2>}|&
 指定されたノードに区切り記号を描きます。
-\pageref{polymerdelim}ページ参照\\\hline
+\pageref{polymerdelim}ページ参照\\[2ex]\hline
 
+\verb|\hreac...\endhreac|&水平方向の反応を描くための開始および終了タグ。\pageref{hreac}ページ参照\\
+\verb|>|\Verb|{<type>}[<top label>][<bottom label>]|&水平な矢印を描きます。\pageref{hreacshift}ページ参照\\
+\verb|+|&水平方向の反応における$+$記号を描きます\\
+\verb|\>|\Verb|{<dimension>}|&現在の化合物を水平方向に移動します。\pageref{hreacarrow}ページ参照\\
+\Verb|\^{<寸法>}|および \Verb|\^*{<寸法>}|&現在の化合物を垂直方向に移動します。\pageref{hreacshift}ページ参照\\
+\Verb|\chemname{<化合物>}{<名前>}|& \Verb|<名前>|を \Verb|<化合物>|の下に書きます。\pageref{hreacname}ページ参照\\
+\Verb|\name{<名前>}|&\Verb|<名前>|を現在の化合物の下に書きます。\pageref{hreacname}ページ参照\\\hline
 \end{longtable}
 \end{center}
 
@@ -3312,9 +3528,9 @@ A\subscheme{\+}BCDEF \arrow G
 
 このマニュアルを締めくくるのは、さまざまな複雑さの分子の図です。
 
-好奇心旺盛なユーザーは各分子の\Verb-<コード>-に興味を持つかもしれませんが、分子が複雑になるほど魅力が薄れていきます。
+好奇心旺盛なユーザーは各分子の \Verb-<コード>-に興味を持つかもしれませんが、分子が複雑になるほど魅力が薄れていきます。
 実際、ある程度の複雑さを超えると、\Verb-<コード>-を書くのは比較的簡単ですが、
-後になって\Verb-<コード>-読んで分析するのはかなり難しくなります。
+後になって \Verb-<コード>-読んで分析するのはかなり難しくなります。
 私たちは、複雑な図のコードの即時可読性の限界にすぐに達しました。
 
 ともかく、このパッケージが分子を描きたい全ての\LaTeX{}ユーザーに役立つことを願っています。
@@ -3449,6 +3665,16 @@ $\star\quad\star$
 	\draw[shorten <=2pt, shorten >=2pt](db) ..controls +(120:5mm) and +(120:7mm)..(atoo1);
 	\draw[shorten <=3pt, shorten >=2pt](atoo2) ..controls +(225:10mm) and +(225:10mm)..(sb);
 }/
+
+\exemple*{アルギン酸カルシウムゲル}?\definesubmol{0}{-[-3,.15,,,draw=none]}% invisible bond to stack
+\definesubmol{COO/Na+}1{-[7]((-[-3,.66]COO^{-}!0N|a^+#1))}
+\definesubmol{chain}{-[5]!{COO/Na+}{}-[5]!{COO/Na+}{}-[5]-[7]}
+\definesubmol{COO/Ca2+}1{-[7]((-[-3,.66]COO^{-}!0C|a^{2+}!0COO^{-}-[-3,.66](-[7]-[5])#1))}
+\hreac[fixed length,atom sep=2.5em,angle increment=30]
+	\chemfig{-[5]!{COO/Na+}{!0\phantom{C}!0(!{COO/Na+}{}!{chain})(-[-1])}!{chain}}
+	>[\printatom{Ca^{2+}}]
+	\chemfig{-[5]!{COO/Ca2+}{(-[-1]-[1])}-[5]!{COO/Ca2+}{}-[5]!{COO/Ca2+}{}-[5]-[7]}
+\endhreac?
 
 \exemple*{求核付加反応：第一級アミン}/\setchemfig{atom sep=2.5em,compound sep=5em}
 \schemestart
@@ -3695,5 +3921,9 @@ $\star\quad\star$
 	\draw[-,thick,shorten >=15pt,shorten <=8pt] (b.east) -- ++(1.3,0) |- (d.west);
 	\draw[thick,shorten >=10pt,shorten <=8pt] (c.east) -- ++(1.3,0) |- (d.west);
 }/
+
+\part{変更履歴}\label{changelogs}
+最初のバージョン以降の\CF における変更点は以下の通りです（最新のものが先頭）。この節は英語に翻訳されていません。
+\input{changelog.tex}
 
 \end{document}

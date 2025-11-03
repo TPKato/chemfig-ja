@@ -1,0 +1,474 @@
+
+\CFchangelog{v1.71}{2025/10/30}
+	\item bugfix : trop de mauvais raccords de liaisons avec la nouvelle
+	  macro !\CF_ifzerodim!. Retour à la précédente définition (la macro 
+	  !\CF_ifzerodim! n'est utilisée que si \CFkv{use atom strut}{true}).
+	  
+	  Les codes donnent à nouveau les bons raccords de liaisons :
+	  \begin{enumerate}
+		  \item !\chemfig{?-A-[:90]B?}!
+		  \item !\chemfig{A-@{a}-B}!
+		  \item !\chemfig{[:30]-\charge{90=a}{}-[:-30]}!
+	  \end{enumerate}
+	  
+	  On obtient bien !3,6! avec le code suivant :
+	  
+	  \begin{verbatim}
+	  \newcount\xx
+	  \begingroup
+	    \def\printatom#1{\global\advance\xx1 \ensuremath{\mathrm{#1}}}
+	    \xx=0 \setbox0\hbox{\chemfig{A-B-C}} \the\xx,
+	    \xx=0 \setbox0\hbox{\chemfig[use atom strut]{A-B-C}}\the\xx
+	  \endgroup
+	  \end{verbatim}
+	\item bugfix : prise en compte de l'argument optionnel de !\chemfig! dans
+	  l'environnement !hreac!.
+	  
+	  Le code \verb|\hreac\chemfig[angle increment=+30]{A-[1]B} > C\endhreac|
+	  ne plante plus à cause du !+! dans l'argument optionnel
+	\item bugfix : prise en compte de l'argument optionnel de !\chemname! dans
+	  l'environnement !hreac!.
+	\item bugfix : dans l'environnement !hreac!, l'argument de !\^{<dimension>}!
+	  n'est plus évaluée à !0pt! si exprimé en !ex! ou !em!.
+	\item ajout : par souci de cohérence, dans l'environnement !hreac!, la macro
+	  !\name[<dim>]{<nom>}! a un argument optionnel pour spécifier l'espacement
+	  du !<nom>! avec le !<composé>!
+	\item mise en place de warnings si utilisation d'un ou deux arguments
+	  optionnels de !\schemestart!. Création de la clé \CFkey{init anchor} pour
+	  accéder au réglage possible avec le deuxième argument optionnel.
+	\item mise en cohérence : la clé \CFkey{name sep} vaut désormais !1.5ex! par
+	  défaut et s'applique à !\chemname! si son argument optionnel est vide
+\endCFchangelog
+
+\CFchangelog{v1.7}{2025/10/26}
+	\item réaction horizontales avec l'environnement
+      \begin{center}!\hreac...\endhreac!\end{center}
+      qui offre une syntaxe plus simple que !\schemestart...\schemestop!
+	\item par défaut désormais, l'argument de !\printatom! est développé et dépourvu de
+      strut
+      \footnote{%
+            dysfonctionnement aimablement signalé sur 2 sites
+%           (\href{https://tex.stackexchange.com/questions/752481/chemfig-chemdraw-esque-custom-font-bond-length-commands-breaking-halfway-thro}{tex.stackexchange}
+%           et
+%           \href{https://www.reddit.com/r/LaTeX/comments/1o74erb/chemfig_in_overleaf_throwing_11_errors_on_a/}{reddit})
+          par Joseph Wright avec son amusante habitude d'exprimer publiquement
+          le mal qu'il pense de mes packages.}.
+
+      Afin d'assurer la compatibilité, le nouveau booléen
+      \CFkey{use atom strut} peut être mis à \CFval{true} afin de retrouver le
+      comportement précédent
+	\item lorsque la clé \CFkv{use atom strut}{false}, chaque atome n'est composé
+      typographiquement qu'une seule fois alors que c'était parfois 5 fois ou plus
+      auparavant puisque !\vphantom! compose son argument dans une boite de \TeX.
+      
+      La macro !\CF_ifzerodim! a été rapidement corrigée  pour que ce soit le cas.
+      Il reste encore des investigations à faire pour que le code soit plus propre...
+      
+      Il se peut que ce changement provoque des petits bugs d'affichage dans le
+      dessin de certaines molécules. Merci de me les signaler.
+    \item suppression de l'historique des changements dans !chemfig.tex! pour le
+    mettre ici dans le manuel.
+\endCFchangelog
+
+\CFchangelog{v1.66}{2023/12/28}
+	\item les liaisons de Cram pleines sont jointes entre elles ou aux
+      liaisons simples lorsque \CFkv{bond join}{true}
+\endCFchangelog
+
+\CFchangelog{v1.6e}{2023/06/30}
+	\item nouvelle clé \CFkey{baseline} pour régler finement l'alignement
+      vertical d'une molécule
+\endCFchangelog
+
+\CFchangelog{v1.6d}{2023/02/18}
+	\item les ancres '!b!' et '!d!' n'étaient pas prises en compte pour le
+      tracé de flèches directes de type !(@a.b-@c.d)! dans les schémas
+      réactionnels
+	\item correction d'un bug : !\CF_currentfromatom! n'était pas
+      initialisé au début d'un cycle et donc le code suivant plantait
+      !\chemfig{AB-[,,2]*3(---)}!
+\endCFchangelog
+
+\CFchangelog{v1.6c}{2022/09/27}
+	\item nouvelles clés \CFkey{gchemname}, \CFkey{schemestart code} et
+      \CFkey{schemestop code} (suggestion de Balazs Debreceni)
+\endCFchangelog
+
+\CFchangelog{v1.6b}{2021/08/01}
+	\item encodage UTF-8
+	\item la macro !\#! n'était pas définie pour remplacer !#(...)! lorsque
+      !\chemfig! se trouve dans l'argument d'une macro.
+\endCFchangelog
+
+\CFchangelog{v1.6a}{2021/02/28}
+	\item le fichier !lewis.tex! a été renommé !chemfig-lewis.tex!
+\endCFchangelog
+
+\CFchangelog{v1.6}{2021/02/26}
+	\item les macros des formules de Lewis sont retirées et placées dans
+      le fichier séparé "!lewis.tex!" que l'utilisateur peut charger
+      s'il le souhaite
+	\item ajout d'une clé \CFkey{debug} pour le trousseau ![chemfig]!
+	\item à l'intérieur d'un schéma, le token '!#!' est permis dans
+      l'argument de !\chemfig!
+\endCFchangelog
+
+\CFchangelog{v1.56}{2020/07/13}
+	\item le centre des cycles est désormais accessible via un nœud
+      spécifique pour chacun d'eux.
+\endCFchangelog
+
+\CFchangelog{v1.55}{2020/06/15}
+	\item chemfig est incompatible avec con\TeX t, vu que ce moteur redéfinit
+      des primitives telles que !\expanded!, !\unexpanded! et peut être
+      d'autres.
+\endCFchangelog
+
+\CFchangelog{v1.54}{2020/05/21}
+	\item chemfig ne peut plus fonctionner sans !\expanded!
+	\item bug : un signe "!=!" laissé par erreur dans le flux
+\endCFchangelog
+
+\CFchangelog{v1.53}{2020/04/27}
+	\item mise à jour en fonction des nouvelles fonctionnalités de
+      l'extension simplekv
+	\item bug : !\CF_ifzerodim! interrompt maintenant le tracé dans la !\hbox!
+\endCFchangelog
+
+\CFchangelog{v1.52}{2020/04/14}
+	\item bug : définition corrigée de !\CFthesubmol! dans !\CF_defsubmolc! pour
+      qu'elle se développe en 1 coup seulement
+\endCFchangelog
+
+\CFchangelog{v1.51}{2020/04/06}
+	\item bug corrigé dans !\chargerect_a! et !\chargeline_a!
+\endCFchangelog
+
+\CFchangelog{v1.5}{2020/03/05}
+	\item nouvelles macros !\charge! et !\Charge!. Les macros !\lewis! et !\Lewis!
+      sont obsolètes et amenées à disparaitre à moyen terme (au moins
+      9 mois), soit fin 2020
+	\item prise en compte de la dimension d'un groupe d'atome pour tracer
+      des liaisons jointives
+	\item bug corrigé dans !\CF_searchnode!
+	\item ajout d'une section dans le manuel (placement des atomes)
+\endCFchangelog
+
+\CFchangelog{v1.41}{2019/05/21}
+	\item utilisation de la nouvelle primitive !\expanded!
+	\item nouvelle clé \CFkey{h align} (\CFval{true} par défaut) pour les délimiteurs
+      de !\polymerdelim!. Lorsque à \CFval{false}, les délimiteurs ne sont
+      plus alignés horizontalement mais positionnés aux noeuds demandés
+	\item nouvelle clé \CFkey{auto rotate} qui n'a de sens que si \CFkv{h align}{false} :
+      les délimiteurs sont automatiquement inclinés
+	\item nouvelle clé \CFkey{rotate} qui n'a de sens que si \CFkv{halign}{false} ET
+      \CFkv{auto rotate}{false} : l'inclinaison des délimiteurs peut êtreà false
+      choisie
+\endCFchangelog
+
+\CFchangelog{v1.4}{2019/04/18}
+	\item corrections de nombreux bugs
+	\item caractère privé "!_!" et non plus "!@!" d'où des modifications à prévoir
+      notamment dans la doc avec les codes spécifiques aux flèches, ça
+      risque de couiner sur tex.stackexchange.com
+	\item anciennes macros abandonnées et désormais indéfinies :\par
+      \begingroup\spaceskip=0.75em plus 0.5em minus 0.5em\relax!\setcrambond!, !\setatomsep!, !\setbondoffset!, !\setdoublesep!,
+            !\setangleincrement!, !\enablefixedbondlength!,
+            !\disablefixedbondlength!, !\setnodestyle!, !\setbondstyle!,
+            !\setlewis!, !\setlewisdist!, !\setstacksep!,
+             !\setarrowdefault!, !\setcompoundstyle!, !\setandsign!, !\setarrowoffset!,
+            !\setcompoundsep!, !\setarrowlabelsep!, !\enablebondjoin!,
+            !\disablebondjoin! et !\schemedebug!\endgroup
+	\item l'ancienne syntaxe !\chemfig[][]{}! est abandonnée et n'est plus
+      acceptée, désormais c'est 
+      \begin{center}!\chemfig[<clés>=<valeurs>]{<code molécule>}!\end{center}
+	\item l'ancienne syntaxe !\lewis[<coeff>]! ou !\Lewis[<coeff>]! n'est
+      plus acceptée au profit de !\lewis[<clés>=<valeurs>]!
+\endCFchangelog
+
+\CFchangelog{v1.34}{2019/02/23}
+	\item bug dans la flèche "\verb|<->|" corrigé
+\endCFchangelog
+
+\CFchangelog{v1.33}{2018/10/31}
+	\item les macros définies par !\definesubmol! peuvent désormais avoir un ou
+      plusieurs arguments
+	\item macro !\polymerdelim! documentée
+\endCFchangelog
+
+\CFchangelog{v1.32}{2018/08/23}
+	\item définition de !\printatom!, !\CF_begintikzpicture! et 
+      !\CF_endtikzpicture! dans le fichier t-chemfig.tex
+\endCFchangelog
+
+\CFchangelog{v1.31}{2018/04/05}
+	\item correction d'un espace indésirable dans !\CF_ifnextchar!
+\endCFchangelog
+
+\CFchangelog{v1.3}{2018/03/08}
+	\item tous les paramètres sont désormais passés via !\setchemfig! qui
+      fait appel à "!simplekv!". Par conséquent, \textit{toutes} les macros qui
+      réglaient des paramètres deviennent obsolètes, à savoir :\par
+      \begingroup\spaceskip=0.75em plus 0.5em minus 0.5em\relax!\setcrambond!, !\setatomsep!, !\setbondoffset!, !\setdoublesep!,
+      !\setangleincrement!, !\enablefixedbondlength!,
+      !\disablefixedbondlength!, !\setnodestyle!, !\setbondstyle!,
+      !\setlewis!, !\setlewisdist!, !\setstacksep!,
+       !\setarrowdefault!, !\setcompoundstyle!, !\setandsign!, !\setarrowoffset!,
+      !\setcompoundsep!, !\setarrowlabelsep!, !\enablebondjoin!,
+      !\disablebondjoin! et !\schemedebug!\endgroup\par
+      Ces macros seront \textbf{supprimées} dans une future version.
+	\item la version étoilée !\chemfig*! et les deux arguments optionnels
+      de la macro !\chemfig[][]! sont également optionnels et seront
+      \textbf{supprimés} dans une future version afin d'accéder à la syntaxe
+      !\chemfig[clés=valeurs]{code}!
+	\item 6 nouveaux paramètres : \CFkey{lewis radius}, \CFkey{arrow double sep},
+      \CFkey{arrow double coeff}, \CFkey{arrow double harpoon}, \CFkey{cycle radius coeff}, \CFkey{arrow head}.
+	\item correction d'un bug dans !\CF_parsemergeopt! qui dans certains
+      cas, envoyait vers l'affichage des caractères
+	\item petit toilettage du code
+	\item macro !\polymerdelim! (non documentée) expérimentale et encore
+      en phase de tests
+	\item suppression d'un registre d'écriture de fichier
+\endCFchangelog
+
+\CFchangelog{v1.2e}{2017/05/20}
+	\item la macro contenant la définition d'une flèche est
+      désormais "!\CF_arrow(<nom>)!", ainsi la macro !\0! n'est plus
+      définie par !\definearrow!
+	\item remerciements rajoutés après une suppression indue, pour ne
+      froisser aucune susceptibilité
+\endCFchangelog
+
+\CFchangelog{v1.2d}{2015/12/01}
+	\item correction d'un bug dans la flèche "!-U!"
+	\item la version étoilée de !\setcrambon!d dessine les liaisons de
+      Cram en pointillés sous forme de trait large et non pas sous
+      forme de triangle.
+\endCFchangelog
+
+\CFchangelog{v1.2c}{2015/11/20}
+	\item Correction d'un bug dans !\CF_setbondangle! : l'angle renvoyé
+      pouvait être négatif
+	\item Correction d'un bug dans !\CF_directarrow! : la macro !\CF_ifempty!
+      n'est pas correctement développée dans l'argument de
+      !\pgfpointanchor!
+\endCFchangelog
+
+\CFchangelog{v1.2b}{2015/11/15}
+	\item bug dans !\CF_searchsubmol! qui laissait "!*!" dans le flux de
+      lecture de TeX. Un message d'erreur est également ajouté
+      en cas de "{\ttfamily\string!}" en fin de traitement.
+	\item correction d'un bug dans !\CF_setbondangle! où l'angle ![<:a>]!
+      n'était pas évalué par !\pgfmathsetmacro!.
+\endCFchangelog
+
+\CFchangelog{v1.2a}{2015/10/21}
+	\item erreur de copier-coller dans le code: une adresse url était
+      malencontreusement présente en plein milieu d'une ligne de
+      code
+\endCFchangelog
+
+\CFchangelog{v1.2}{2015/10/08}
+	\item correction d'un bug dans le tracé des liaisons de Cram.
+	\item création de !\setangleincrement!.
+	\item chargement de "arrows.meta" et définition de la flèche "!CF!"
+      basée sur "!Stealth!" et définie avec !\pgfdeclarearrow!.
+      Les anciennes flèches "!CF_full!" et "!CF_half!" sont
+      abandonnées puisque définies avec !\pgfarrowsdeclare!.
+	\item flèche "-U>" corrigée : le placement des labels est
+      maintenant correct dans tous les cas. Ainsi :
+			\begin{center}\verb|-U>|![<a>][<b>][<d>][<r>][<a>]!\end{center}
+      place le label !<a>! près du début de la flèche, quels que
+      soient les signes du rayon !<r>! et de l'angle !<a>!.
+	\item !\chemrel!, !\setchemrel! et !\chemsign! sont supprimées.
+	\item compatibilité, avec les limitations d'usage, avec la
+      librairie "!externalize!" : le !\begin{tikzpicture}! voit
+      désormais le !\end{tikzpicture}! correspondant dans la macro
+      !\CF_chemfigb!.
+\endCFchangelog
+
+\CFchangelog{v1.1a}{2015/02/23}
+	\item correction d'un bug dans !\CF_grabbondoffset!. Si !\chemfig! est
+      dans l'argument d'une macro, les "!#!" sont doublés par l'action
+      de !\scantokens! de la macro !\CF_chemfigb! et il faut un
+      argument délimité avant "!(!" pour absorber tous les "!#!".
+\endCFchangelog
+
+\CFchangelog{v1.1}{2015/02/13}
+	\item correction d'un bug dans !\CF_searchsubmol! : la macro
+      !\CF_molecule! est dépouillé de son éventuel espace
+      en première position.
+	\item correction d'un bug dans !\CF_arrowf! : le nom du prochain
+      nœud courant "!end@arrow@i!" était erroné dans le cas où une
+      flèche contenait un sous schéma. Ce nom doit dépendre de
+      !\CF_schemenest!.
+	\item la jonction entre deux liaisons consécutives dans l'axe peut
+      être activé avec !\enablebondjoin! et désactivé avec
+      !\disablebondjoin! (préférable, état par défaut).
+	\item !\chemfig! suivi d'une "!*!" demande à ce que les liaisons aient
+      une longueur invariable : la distance inter-atome devient donc
+      variable. Cette fonctionnalité est désactivé dans les
+      cycles afin que les polygones soient réguliers.
+      !\enablefixedbondlength! permet cette fonctionnalité pour
+      toutes les macros !\chemfig! (même non étoilée) tandis que
+      !\disablefixedbondlength! le désactive.
+\endCFchangelog
+
+\CFchangelog{v1.0h}{2013/11/28}
+	\item !\chemname! admet maintenant une version étoilé qui ne tient
+      pas compte des profondeurs précédentes.
+	\item !\CF_dpmax! est géré globalement.
+	\item correction d'un bug dans "\verb|-U>|" : le style de la flèche
+      n'était pris en compte pour l'arc.
+	\item correction d'un bug dans !\CF_directarrow! : l'angle de la
+      flèche n'était pas calculé
+\endCFchangelog
+
+\CFchangelog{v1.0g}{2012/11/16}
+	\item correction d'un bug dans !\CF_directarrow! pour faire prendre en
+      compte le style des flèche par défaut
+	\item correction d'un bug dans !\CF_lewisc! : la boite \textit{doit} être
+      composée en dehors de l'environnement tikzpicture pour
+      éviter nullfont si jamais !\printatom! ne passe pas en mode
+      math.
+	\item correction d'un bug dans !\CF_chemfigc! : si une longueur par
+      défaut est modifiée par ![,<l>]! au début d'une molécule
+      et si des cycles étaient emboités, cette longueur n'était
+      pas appliquée aux sous-cycles.
+	\item ré-écriture des macros !\chemabove! et !\chembemow! pour
+      prendre en compte le bug (désormais corrigé) dans luatex.
+	\item nouvelle macro !\setstacksep! qui définit l'espacement par
+      défaut dans les macros !\chemabove! et !\chembelow!.
+\endCFchangelog
+
+\CFchangelog{v1.0f}{2012/02/24}
+	\item correction d'un bug avec !\definesubmol!, les catcodes n'étaient
+      pas correctement gérés.
+\endCFchangelog
+
+\CFchangelog{v1.0e}{2012/01/13}
+	\item la gestion des espaces dans les groupes d'atomes est
+      désormais plus rigoureuse. Plusieurs bugs ont été
+      corrigés
+\endCFchangelog
+
+\CFchangelog{v1.0d}{2011/12/19}
+	\item les cercles des cycles étaient tracés au mauvais moment. La
+      longueur de la liaison qui les précédait influait sur le
+      rayon du cercle :
+      \begin{center}!\chemfig{-[,0.5]**6(------)}!\end{center} donnait un bug
+      à l'affichage.
+\endCFchangelog
+
+\CFchangelog{v1.0c}{2011/11/30}
+	\item la macro !\+! n'est plus explicitement écrite
+	\item vérifie que eTeX est le moteur utilisé
+\endCFchangelog
+
+\CFchangelog{v1.0b}{2011/11/29}
+	\item la commande !\merge! est désormais protégée entre
+      !\schemestart! et !\schemestop! contre des définitions par d'autres
+      packages.
+	\item !\box0! est utilisé au lieu du maladroit !\unhbox0!
+\endCFchangelog
+
+\CFchangelog{v1.0a}{2011/09/18}
+	\item les macros !\Lewis! et !\lewis! admettent un argument optionnel
+	\item la macro !\setlewisdist! règle la distance entre les 2
+      électrons
+\endCFchangelog
+
+\CFchangelog{v1.0}{2011/06/15}
+	\item les schémas réactionnels sont désormais disponibles.
+	\item !\Chemabove! et !\Chembelow! modifient la boite englobante.
+	\item !\Lewis! modifie la boite englobante
+	\item les macros !\chemleft!, !\chemright!, !\chemup! et !\chemdown!
+      affichent des délimiteurs extensibles à gauche, à droite,
+      au dessus et au dessous d'un matériel.
+\endCFchangelog
+
+\CFchangelog{v0.4b}{2011/04/24}
+	\item l'argument de !\chemfig! est tokénisé avec !\scantokens! ce qui
+      rend caduc tout souci de code de catégorie, à part !#!.
+	\item la commande !\setbondstyle! permet de définir le style des
+      liaisons.
+	\item correction de l'affichage incorrect des doubles liaisons dans
+      les cycles après les commandes !\hflipnext! et !\vflipnext!
+	\item correction d'un bug lorsqu'un alias commence une molécule
+\endCFchangelog
+
+\CFchangelog{v0.4a}{2011/04/10}
+	\item Correction d'un bug concernant l'argument optionnel en début
+      de molécule.
+\endCFchangelog
+
+\CFchangelog{v0.4}{2011/03/07}
+	\item chemfig est désormais écrit en plain-etex et donc
+      utilisable par d'autres formats que LaTeX.
+	\item Un peu plus de rigueur avec les catcodes des caractères
+      spéciaux, notamment lorsque la commande !\chemfig! se trouve
+      dans l'argument de !\chemmove!, !\chemabove!, !\chembelow!,! \chemrel!.
+      TODO : faut-il !\scantoken! l'argument de !\chemfig! pour être
+      définitivement débarrassé de ces histoires de catcode ???
+	\item Correction d'un bug dans le calcul de l'angle des liaisons
+\endCFchangelog
+
+\CFchangelog{v0.3a}{2011/01/08}
+	\item Correction d'un bug dans l'argument optionnel de !\definesubmol!
+      lorsque celui-ci comporte des crochets.
+	\item Mise à jour du manuel en anglais.
+	\item Ajout de !\vflipnext! et !\hflipnext! pour retourner
+      horizontalement ou verticalement la prochaine molécule.
+\endCFchangelog
+
+\CFchangelog{v0.3}{2010/11/21}
+	\item Amélioration de !\definesubmol! qui accepte les séquences de
+      contrôle. On peut aussi choisir un alias dont la substitution
+      est différente selon l'orientation de la liaison qui lui
+      arrive dessus.
+	\item Le caractère "!|!" force la fin d'un atome. Si on écrit
+      "!D|ef!" alors, chemfig verra deux atomes "!D!" et "!ef!".
+	\item Le caractère "!#!" est reconnu lorsqu'il suit un caractère de
+      liaison. Il doit être suivi d'un argument entre parenthèses
+      qui contient l'offset de début et de fin qui s'appliqueront
+      à cette liaison.
+	\item La macro !\chemfig! admet un argument optionnel qui sera passé
+      à l'environnement tikzpicture dans lequel elle est dessinée
+	\item Mise en place de la représentation des mécanismes
+      réactionnels avec la syntaxe "!@{<nom>}!" devant un atome où
+      "!@{<nom>,<coeff>}!" au tout début de l'argument d'une liaison.
+      Cette syntaxe permet de placer un nœud (au sens de tikz) qui
+      deviendra l'extrémité des flèches des mécanismes.
+      Le tracé des flèches est faite par la macro !\chemmove! dont
+      l'argument optionnel devient celui de l'environnement
+      tikzpicture dans lequel sont faites les flèches.
+	\item Pour le mécanisme d'alignement vertical via le !\vphantom!, la
+      commande !\chemskipalig!n permet d'ignorer le groupe d'atomes
+      dans lequel elle est écrite.
+	\item La commande !\chemname! permet d'afficher un nom sous une
+      molécule. la commande !\chemnameinit! initialise la plus grande
+      profondeur rencontrée.
+	\item La commande !\lewis! a été modifiée de telle sorte que les
+      dessins des décorations soient proportionnels à la taille
+      de la police.
+\endCFchangelog
+
+\CFchangelog{v0.2}{2010/08/31}
+	\item Ajout de la documentation en anglais.
+	\item Correction de bugs.
+	\item !\printatom! est désormais une macro publique.
+	\item Les espaces sont permis dans les molécules. Ils seront
+      ignorés par défaut puisque les atomes sont composés en
+      mode math par !\printatom!.
+	\item Une paire de Lewis peut être représentée "!:!".
+	\item Dans les cycles, une correction de la longueur du trait
+      déporté des liaisons doubles est fait de telle sorte que si
+      l'on écrit !\chemfig{*5(=====)}!, on obtient deux polygones
+      réguliers concentriques.
+	\item La séquence de contrôle !\setnodestyle! permet de spécifier
+      le style des noeuds dessinés par tikz.
+\endCFchangelog
+
+\CFchangelog{v0.1}{2010/06/23}
+	\item Première version publique sur le CTAN
+\endCFchangelog
